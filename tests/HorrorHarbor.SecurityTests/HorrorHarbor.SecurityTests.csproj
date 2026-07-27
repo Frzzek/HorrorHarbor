@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HorrorHarbor.Core\HorrorHarbor.Core.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Data\HorrorHarbor.Data.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Recommendations\HorrorHarbor.Recommendations.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Search\HorrorHarbor.Search.csproj" />
+    <PackageReference Include="MSTest" />
+    <PackageReference Include="coverlet.msbuild" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\fixtures\malicious\**\*" Link="fixtures\malicious\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

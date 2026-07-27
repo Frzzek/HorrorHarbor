@@ -1,0 +1,625 @@
+<Window x:Class="HorrorHarbor.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nocturne Harbor — Horror discovery"
+        Width="1480" Height="920" MinWidth="1040" MinHeight="720"
+        WindowStartupLocation="CenterScreen" Loaded="OnLoaded" PreviewKeyDown="OnPreviewKeyDown"
+        Icon="Assets/NocturneHarbor.ico"
+        Style="{StaticResource AppWindowStyle}"
+        Background="{DynamicResource WindowBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}"
+        AutomationProperties.Name="Nocturne Harbor horror discovery">
+  <Window.InputBindings>
+    <KeyBinding Key="R" Modifiers="Control" Command="{Binding RefreshRecommendationsCommand}" />
+    <KeyBinding Key="L" Modifiers="Control" Command="{Binding LoadCommand}" />
+    <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoFeedbackCommand}" />
+    <KeyBinding Key="F" Modifiers="Control" Command="ApplicationCommands.Find" />
+  </Window.InputBindings>
+  <Window.CommandBindings>
+    <CommandBinding Command="ApplicationCommands.Find" Executed="OnFindExecuted" />
+  </Window.CommandBindings>
+
+  <Grid Background="{DynamicResource WindowBrush}" TextElement.Foreground="{DynamicResource PrimaryTextBrush}">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="318" MinWidth="290" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+
+    <Border Grid.Column="0" Background="{DynamicResource SidebarBrush}"
+            BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="0,0,1,0">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                    PanningMode="VerticalOnly">
+        <StackPanel Margin="25,24,24,30">
+          <Grid Margin="0,0,0,26">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="50" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Border Width="42" Height="42" CornerRadius="13" Background="{DynamicResource AccentSoftBrush}"
+                    BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" VerticalAlignment="Top">
+              <Path Data="M5,23 C8,12 15,5 24,4 C20,10 19,17 23,25 C17,22 11,22 5,23 Z"
+                    Fill="{DynamicResource AccentBrush}" Stretch="Uniform" Margin="9" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+              <TextBlock Text="NOCTURNE HARBOR" FontSize="17" FontWeight="Bold" />
+              <TextBlock Text="FIND YOUR NEXT NIGHTMARE" FontSize="10" FontWeight="Bold"
+                         Foreground="{DynamicResource GoldBrush}" Margin="0,2,0,0" />
+            </StackPanel>
+          </Grid>
+
+          <Border Style="{StaticResource SectionCard}" Margin="0,0,0,14">
+            <StackPanel>
+              <TextBlock Text="1  SET TONIGHT'S MOOD" Style="{StaticResource EyebrowText}" />
+              <TextBlock Text="Tune the intensity. Your list updates when you choose Find films."
+                         Style="{StaticResource SupportingText}" Margin="0,5,0,16" TextWrapping="Wrap" />
+
+              <Grid Margin="0,0,0,4">
+                <TextBlock Text="Scare" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding DesiredScare, StringFormat={}{0:0} / 5}" HorizontalAlignment="Right"
+                           Foreground="{DynamicResource SecondaryTextBrush}" />
+              </Grid>
+              <Slider Minimum="0" Maximum="5" TickFrequency="1" IsSnapToTickEnabled="True"
+                      Value="{Binding DesiredScare}" AutomationProperties.Name="Desired scare intensity"
+                      Margin="0,0,0,11" />
+
+              <Grid Margin="0,0,0,4">
+                <TextBlock Text="Gore" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding DesiredGore, StringFormat={}{0:0} / 5}" HorizontalAlignment="Right"
+                           Foreground="{DynamicResource SecondaryTextBrush}" />
+              </Grid>
+              <Slider Minimum="0" Maximum="5" TickFrequency="1" IsSnapToTickEnabled="True"
+                      Value="{Binding DesiredGore}" AutomationProperties.Name="Desired gore intensity"
+                      Margin="0,0,0,11" />
+
+              <Grid Margin="0,0,0,4">
+                <TextBlock Text="Dread" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding DesiredDread, StringFormat={}{0:0} / 5}" HorizontalAlignment="Right"
+                           Foreground="{DynamicResource SecondaryTextBrush}" />
+              </Grid>
+              <Slider Minimum="0" Maximum="5" TickFrequency="1" IsSnapToTickEnabled="True"
+                      Value="{Binding DesiredDread}" AutomationProperties.Name="Desired dread intensity"
+                      Margin="0,0,0,11" />
+
+              <Grid Margin="0,0,0,4">
+                <TextBlock Text="Discovery" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Novelty, StringFormat={}{0:P0}}" HorizontalAlignment="Right"
+                           Foreground="{DynamicResource SecondaryTextBrush}" />
+              </Grid>
+              <Slider Minimum="0" Maximum="1" TickFrequency="0.1" Value="{Binding Novelty}"
+                      AutomationProperties.Name="Discovery preference" Margin="0,0,0,11" />
+
+              <CheckBox Content="Prioritize slashers" IsChecked="{Binding PreferSlashers}" />
+              <CheckBox Content="Include extreme horror" IsChecked="{Binding PreferExtreme}" />
+
+              <Button Content="Find films for tonight" Command="{Binding RefreshRecommendationsCommand}"
+                      AutomationProperties.Name="Find films for tonight" Margin="0,14,0,8" />
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="8" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button Content="Surprise me" Style="{StaticResource QuietButton}"
+                        Command="{Binding SurpriseMeCommand}" />
+                <Button Grid.Column="2" Content="Reset" Style="{StaticResource QuietButton}"
+                        Command="{Binding ResetMoodCommand}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource SectionCard}" Margin="0,0,0,14">
+            <StackPanel>
+              <TextBlock Text="YOUR TASTE PROFILE" Style="{StaticResource EyebrowText}" />
+              <TextBlock Text="{Binding Stats.CoreHorrorTitles, StringFormat={}{0:N0} core horror films}"
+                         FontSize="17" FontWeight="SemiBold" Margin="0,9,0,0" />
+              <TextBlock Text="{Binding Stats.RelevantTitles, StringFormat={}{0:N0} taste signals}"
+                         Style="{StaticResource SupportingText}" Margin="0,4,0,0" />
+              <TextBlock Text="{Binding Stats.RawEvents, StringFormat={}{0:N0} verified watches}"
+                         Style="{StaticResource SupportingText}" Margin="0,3,0,0" />
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource SectionCard}">
+            <Expander Header="2  IMPROVE WITH PLEX" IsExpanded="False"
+                      AutomationProperties.Name="Plex history connection">
+              <StackPanel Margin="0,12,0,0">
+                <TextBlock Text="Optional: connect your own server to exclude watched films and personalize results."
+                           Style="{StaticResource SupportingText}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                <TextBlock Text="Server address" FontWeight="SemiBold" />
+                <TextBox Text="{Binding PlexServerUrl, UpdateSourceTrigger=PropertyChanged}"
+                         AutomationProperties.Name="Plex server URL" Margin="0,5,0,10" />
+                <TextBlock Text="Plex token" FontWeight="SemiBold" />
+                <PasswordBox x:Name="PlexTokenBox" AutomationProperties.Name="Plex authentication token"
+                             Margin="0,5,0,7" />
+                <TextBlock Text="Stored securely in Windows Credential Manager. It is never shown in logs."
+                           Style="{StaticResource SupportingText}" FontSize="11" TextWrapping="Wrap" />
+                <CheckBox Content="Allow HTTP on my trusted home network"
+                           IsChecked="{Binding AllowInsecurePlexHttp}" Margin="0,9,0,3"
+                           AutomationProperties.HelpText="HTTPS is recommended. HTTP requires a private, link-local, or loopback IP address literal." />
+                <TextBlock Text="HorrorHarbor is an independent community project. It is not reviewed, approved, or endorsed by Plex. Plex and Plex Media Server are trademarks of Plex and used under a license."
+                           Style="{StaticResource SupportingText}" FontSize="10" TextWrapping="Wrap" Margin="0,8,0,0" />
+                <TextBlock FontSize="10" Margin="0,5,0,0">
+                  <Hyperlink NavigateUri="https://developer.plex.tv/"
+                             RequestNavigate="OnOpenExternalLink">Plex developer documentation</Hyperlink>
+                  <Run Text="  ·  " />
+                  <Hyperlink NavigateUri="https://www.plex.tv/about/privacy-legal/plex-trademarks-and-guidelines/"
+                             RequestNavigate="OnOpenExternalLink">Trademark guidelines</Hyperlink>
+                </TextBlock>
+                <WrapPanel Margin="0,9,0,0">
+                  <Button Content="Connect" Click="OnConnectPlex" AutomationProperties.Name="Connect to Plex"
+                          Margin="0,0,7,7" />
+                  <Button Content="Sync now" Style="{StaticResource QuietButton}" Command="{Binding SyncPlexCommand}"
+                          AutomationProperties.Name="Synchronize Plex history" Margin="0,0,7,7" />
+                  <Button Content="Cancel" Style="{StaticResource QuietButton}" Command="{Binding CancelPlexSyncCommand}"
+                          AutomationProperties.Name="Cancel Plex synchronization" Margin="0,0,0,7" />
+                </WrapPanel>
+                <TextBlock Text="{Binding PlexStatus}" Style="{StaticResource SupportingText}"
+                           TextWrapping="Wrap" Margin="0,5,0,0" AutomationProperties.LiveSetting="Polite" />
+              </StackPanel>
+            </Expander>
+          </Border>
+
+          <Border Style="{StaticResource SectionCard}" Margin="0,14,0,0">
+            <Expander Header="3  OFFICIAL FILM POSTERS" IsExpanded="False"
+                      AutomationProperties.Name="Official TMDB poster setup">
+              <StackPanel Margin="0,12,0,0">
+                <TextBlock Text="Add your TMDB API Read Access Token to retrieve official film artwork. Ambiguous title matches safely use the generated fallback."
+                           Style="{StaticResource SupportingText}" TextWrapping="Wrap" Margin="0,0,0,10" />
+                <TextBlock Text="TMDB read-access token" FontWeight="SemiBold" />
+                <PasswordBox x:Name="TmdbTokenBox" AutomationProperties.Name="TMDB API read access token"
+                             Margin="0,5,0,7" />
+                <TextBlock Text="Stored in Windows Credential Manager. No token is written to logs, catalogs, image URLs, or manifests."
+                           Style="{StaticResource SupportingText}" FontSize="11" TextWrapping="Wrap" />
+                <CheckBox x:Name="TmdbPersonalUseAcknowledgement"
+                          Content="I am using my own authorized TMDB credential for personal, non-commercial use and accept TMDB's current terms."
+                          Margin="0,9,0,3" FontSize="11"
+                          AutomationProperties.Name="Acknowledge personal non-commercial TMDB use" />
+                <WrapPanel Margin="0,9,0,0">
+                  <Button Content="Enable official posters" Click="OnSaveTmdbToken" Margin="0,0,7,7" />
+                  <Button Content="Disable" Click="OnDeleteTmdbToken" Style="{StaticResource QuietButton}" Margin="0,0,0,7" />
+                </WrapPanel>
+                <TextBlock Text="{Binding ArtworkStatus}" Style="{StaticResource SupportingText}"
+                           TextWrapping="Wrap" Margin="0,5,0,0" AutomationProperties.LiveSetting="Polite" />
+                <Border Background="{DynamicResource PanelRaisedBrush}" BorderBrush="{DynamicResource PanelBorderBrush}"
+                        BorderThickness="1" CornerRadius="7" Padding="10" Margin="0,12,0,0"
+                        AutomationProperties.Name="TMDB attribution and terms">
+                  <StackPanel>
+                    <Image Source="Assets/tmdb-logo.png" Width="196" Height="15"
+                           HorizontalAlignment="Left" Stretch="Uniform"
+                           AutomationProperties.Name="The Movie Database logo" />
+                    <TextBlock Text="This product uses the TMDB API but is not endorsed or certified by TMDB."
+                               Foreground="{DynamicResource GoldBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,9,0,0" />
+                    <TextBlock FontSize="10" Margin="0,6,0,0">
+                      <Hyperlink NavigateUri="https://www.themoviedb.org/about/logos-attribution"
+                                 RequestNavigate="OnOpenExternalLink">TMDB attribution and branding</Hyperlink>
+                      <Run Text="  ·  " />
+                      <Hyperlink NavigateUri="https://www.themoviedb.org/api-terms-of-use"
+                                 RequestNavigate="OnOpenExternalLink">API terms of use</Hyperlink>
+                    </TextBlock>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </Expander>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+
+    <Grid Grid.Column="1" Margin="32,26,28,18">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <Grid Grid.Row="0" Margin="0,0,0,19">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Text="CURATED FOR THIS MOMENT" Style="{StaticResource EyebrowText}" />
+          <TextBlock Text="Tonight's discoveries" FontSize="32" FontWeight="SemiBold" Margin="0,4,0,0" />
+          <TextBlock Text="{Binding MoodSummary}" Style="{StaticResource SupportingText}" FontSize="13" Margin="0,5,0,0" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+          <Button Content="Reload data" Command="{Binding LoadCommand}" Style="{StaticResource QuietButton}"
+                  ToolTip="Reload catalog and history (Ctrl+L)" Margin="0,0,8,0" />
+          <Button Content="Undo feedback" Command="{Binding UndoFeedbackCommand}" Style="{StaticResource QuietButton}"
+                  ToolTip="Undo latest feedback (Ctrl+Z)" />
+        </StackPanel>
+      </Grid>
+
+      <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Margin="0,0,0,17">
+        <StackPanel>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="205" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Margin="0,0,9,0">
+            <TextBox x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=200}"
+                     AutomationProperties.Name="Advanced horror catalog search"
+                     AutomationProperties.HelpText="Supports quoted phrases, exclusions, fields, ranges, status, and availability filters."
+                     ToolTip="Examples: &quot;body horror&quot; -zombie year:&gt;=2010 gore:3..5 tag:folk" />
+            <TextBlock Text="{Binding SearchDiagnostic}" Foreground="{DynamicResource AccentBrush}"
+                       FontSize="11" TextWrapping="Wrap" Margin="3,5,0,0"
+                       AutomationProperties.LiveSetting="Assertive">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding HasSearchDiagnostic}" Value="True">
+                      <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+          </StackPanel>
+          <Button Grid.Column="1" Content="Clear" Command="{Binding ClearSearchCommand}"
+                  Style="{StaticResource QuietButton}" Margin="0,0,12,0" />
+          <ComboBox Grid.Column="2" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}"
+                    AutomationProperties.Name="Sort recommended films" />
+        </Grid>
+        <Expander Header="Advanced search examples" IsExpanded="False" Margin="2,9,0,0"
+                  AutomationProperties.Name="Advanced search syntax help">
+          <WrapPanel Margin="0,8,0,0">
+            <TextBlock Text="&quot;body horror&quot;" Style="{StaticResource SupportingText}" Margin="0,0,16,6" />
+            <TextBlock Text="-zombie" Style="{StaticResource SupportingText}" Margin="0,0,16,6" />
+            <TextBlock Text="year:&gt;=2010" Style="{StaticResource SupportingText}" Margin="0,0,16,6" />
+            <TextBlock Text="runtime:&lt;90" Style="{StaticResource SupportingText}" Margin="0,0,16,6" />
+            <TextBlock Text="gore:3..5" Style="{StaticResource SupportingText}" Margin="0,0,16,6" />
+            <TextBlock Text="lens:folk" Style="{StaticResource SupportingText}" Margin="0,0,16,6" />
+            <TextBlock Text="status:unseen" Style="{StaticResource SupportingText}" Margin="0,0,16,6" />
+          </WrapPanel>
+        </Expander>
+        </StackPanel>
+      </Border>
+
+      <Grid Grid.Row="2">
+        <ListBox ItemsSource="{Binding Recommendations}"
+                 Background="{DynamicResource WindowBrush}" BorderThickness="0"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True"
+                 VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                 AutomationProperties.Name="Recommended unseen horror films">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemContainerStyle>
+            <Style TargetType="ListBoxItem">
+              <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+              <Setter Property="Padding" Value="0" />
+              <Setter Property="Margin" Value="0,0,0,14" />
+              <Setter Property="Background" Value="Transparent" />
+              <Setter Property="BorderThickness" Value="0" />
+              <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
+              <Style.Triggers>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                  <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                </Trigger>
+              </Style.Triggers>
+            </Style>
+          </ListBox.ItemContainerStyle>
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Border Background="{DynamicResource PanelRaisedBrush}" BorderBrush="{DynamicResource PanelBorderBrush}"
+                      BorderThickness="1" CornerRadius="13">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="168" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="136" />
+                  </Grid.ColumnDefinitions>
+
+                  <Border Grid.Column="0" Height="252" CornerRadius="12,0,0,12" ClipToBounds="True"
+                          Background="{Binding Candidate.PosterTone}" ToolTip="{Binding PosterStatus}">
+                    <Grid>
+                      <Image Source="{Binding PosterImage}" Stretch="UniformToFill"
+                             AutomationProperties.Name="{Binding PosterStatus}" />
+                      <Border VerticalAlignment="Top" HorizontalAlignment="Left" Margin="8" Padding="6,3"
+                              CornerRadius="4" Background="#D9000000">
+                        <TextBlock Text="{Binding PosterSource}" Foreground="White" FontSize="8" FontWeight="Bold" />
+                      </Border>
+                    </Grid>
+                  </Border>
+
+                  <StackPanel Grid.Column="1" Margin="22,17,20,16" VerticalAlignment="Top">
+                    <TextBlock Text="{Binding Candidate.Title}" FontSize="21" FontWeight="SemiBold"
+                               TextWrapping="Wrap" MaxHeight="56" TextTrimming="CharacterEllipsis"
+                               AutomationProperties.HeadingLevel="Level3" />
+                    <TextBlock Text="{Binding Candidate.YearLabel}" Style="{StaticResource SupportingText}"
+                               Foreground="{DynamicResource GoldBrush}" FontSize="12" FontWeight="SemiBold"
+                               Margin="0,3,0,12" />
+                    <WrapPanel Margin="0,0,0,11">
+                      <Border Background="{DynamicResource AccentSoftBrush}" BorderBrush="{DynamicResource AccentBrush}"
+                              BorderThickness="1" CornerRadius="5" Padding="8,4" Margin="0,0,9,0">
+                        <TextBlock Text="{Binding ScoreLabel}" Foreground="{DynamicResource GoldBrush}"
+                                   FontSize="11" FontWeight="Bold" />
+                      </Border>
+                      <TextBlock Text="{Binding Candidate.PrimaryLens}" VerticalAlignment="Center"
+                                 FontWeight="SemiBold" />
+                    </WrapPanel>
+                    <TextBlock Text="{Binding Explanation}" TextWrapping="Wrap" FontSize="13" MaxWidth="720"
+                               HorizontalAlignment="Left" />
+                    <TextBlock Text="{Binding Candidate.TagLine}" Style="{StaticResource SupportingText}"
+                               FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0" />
+                    <TextBlock Text="{Binding Candidate.IntensityLabel}" Style="{StaticResource SupportingText}"
+                               FontSize="11" Margin="0,7,0,0" />
+                    <TextBlock Text="{Binding Candidate.AvailabilityLabel}" Foreground="{DynamicResource GoldBrush}"
+                               FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap" />
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="2" Margin="0,18,14,14" VerticalAlignment="Top">
+                    <TextBlock Text="TUNE YOUR TASTE" Style="{StaticResource EyebrowText}"
+                               FontSize="9" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                    <Button Content="View details" Style="{StaticResource QuietButton}"
+                            Click="OnViewDetails" AutomationProperties.Name="View film details"
+                            Margin="0,0,0,8" />
+                    <Button Content="Save for later" Style="{StaticResource FeedbackButton}"
+                            ToolTip="Show me more recommendations like this"
+                            Command="{Binding DataContext.MarkInterestedCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}" />
+                    <Button Content="Not tonight" Style="{StaticResource FeedbackButton}"
+                            ToolTip="Keep it available, but lower it for now"
+                            Command="{Binding DataContext.MarkNotNowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}" />
+                    <Button Content="Already watched" Style="{StaticResource FeedbackButton}"
+                            ToolTip="Remove this title from future recommendations"
+                            Command="{Binding DataContext.MarkWatchedCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}" />
+                    <Button Content="Not for me" Style="{StaticResource FeedbackButton}"
+                            ToolTip="Remove this and reduce similar recommendations"
+                            Command="{Binding DataContext.MarkDislikeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Border Background="{DynamicResource PanelRaisedBrush}" BorderBrush="{DynamicResource PanelBorderBrush}"
+                BorderThickness="1" CornerRadius="14" Padding="34" HorizontalAlignment="Center"
+                VerticalAlignment="Center" MaxWidth="500">
+          <Border.Style>
+            <Style TargetType="Border">
+              <Setter Property="Visibility" Value="Collapsed" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding Recommendations.Count}" Value="0">
+                  <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Border.Style>
+          <StackPanel>
+            <TextBlock Text="No films match this view" FontSize="22" FontWeight="SemiBold"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="Clear the search, try Best match sorting, or adjust tonight's mood."
+                       Style="{StaticResource SupportingText}" TextWrapping="Wrap" TextAlignment="Center"
+                       Margin="0,8,0,18" />
+            <Button Content="Clear search" Command="{Binding ClearSearchCommand}"
+                    HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <Border Grid.Row="3" Margin="0,10,0,0" Padding="14,11"
+              Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource PanelBorderBrush}"
+              BorderThickness="1" CornerRadius="9">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <Ellipse Width="8" Height="8" Fill="{DynamicResource PositiveBrush}" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding StatusText}" Style="{StaticResource SupportingText}"
+                     TextWrapping="Wrap" Margin="9,0,16,0" AutomationProperties.LiveSetting="Polite" />
+          <TextBlock Grid.Column="2" Text="{Binding ResultsSummary}" Foreground="{DynamicResource PrimaryTextBrush}"
+                     FontWeight="SemiBold" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+    </Grid>
+
+    <Grid Grid.ColumnSpan="2" Background="#B8000000" Panel.ZIndex="90"
+          AutomationProperties.Name="Film details panel">
+      <Grid.Style>
+        <Style TargetType="Grid">
+          <Setter Property="Visibility" Value="Collapsed" />
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding IsFilmDetailsOpen}" Value="True">
+              <Setter Property="Visibility" Value="Visible" />
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </Grid.Style>
+      <Border Width="860" HorizontalAlignment="Right" Background="{DynamicResource WindowBrush}"
+              BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="1,0,0,0"
+              DataContext="{Binding SelectedFilmDetails}">
+        <Grid Margin="30,24,28,24">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+
+          <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="RECOMMENDATION DETAILS" Style="{StaticResource EyebrowText}" />
+              <TextBlock Text="Why this film surfaced tonight" Style="{StaticResource SupportingText}"
+                         FontSize="13" Margin="0,5,0,0" />
+            </StackPanel>
+            <Button x:Name="DetailsCloseButton" Grid.Column="1" Content="Close"
+                    Style="{StaticResource QuietButton}" Click="OnCloseDetails"
+                    AutomationProperties.Name="Close film details" />
+          </Grid>
+
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                        HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+            <StackPanel Margin="0,0,8,12">
+              <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="250" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Width="238" Height="357" HorizontalAlignment="Left" VerticalAlignment="Top"
+                        CornerRadius="12" ClipToBounds="True" Background="{Binding Candidate.PosterTone}"
+                        BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="1">
+                  <Grid>
+                    <Image Source="{Binding Card.PosterImage}" Stretch="UniformToFill"
+                           AutomationProperties.Name="{Binding ArtworkStatus}" />
+                    <Border VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10" Padding="7,4"
+                            CornerRadius="4" Background="#E0000000">
+                      <TextBlock Text="{Binding ArtworkSource}" Foreground="White"
+                                 FontSize="9" FontWeight="Bold" />
+                    </Border>
+                  </Grid>
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="22,2,0,0">
+                  <TextBlock Text="{Binding Title}" FontSize="30" FontWeight="SemiBold"
+                             TextWrapping="Wrap" AutomationProperties.HeadingLevel="Level1" />
+                  <TextBlock Text="{Binding IdentityLine}" Foreground="{DynamicResource GoldBrush}"
+                             FontSize="14" FontWeight="SemiBold" Margin="0,6,0,15" />
+                  <TextBlock Text="{Binding LensLine}" FontSize="16" FontWeight="SemiBold"
+                             TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding FranchiseLine}" Style="{StaticResource SupportingText}"
+                             TextWrapping="Wrap" Margin="0,8,0,0" />
+                  <TextBlock Text="{Binding OriginalTitleLine}" Style="{StaticResource SupportingText}"
+                             TextWrapping="Wrap" Margin="0,5,0,0" />
+                  <TextBlock Text="{Binding LanguageLine}" Style="{StaticResource SupportingText}"
+                             TextWrapping="Wrap" Margin="0,5,0,0" />
+
+                  <Border Background="{DynamicResource AccentSoftBrush}" BorderBrush="{DynamicResource AccentBrush}"
+                          BorderThickness="1" CornerRadius="7" Padding="11,7"
+                          HorizontalAlignment="Left" Margin="0,18,0,0">
+                    <TextBlock Text="{Binding ScoreLabel}" Foreground="{DynamicResource GoldBrush}"
+                               FontWeight="Bold" FontSize="14" />
+                  </Border>
+                  <TextBlock Text="{Binding IntensityLine}" Style="{StaticResource SupportingText}"
+                             FontSize="12" TextWrapping="Wrap" Margin="0,14,0,0" />
+                  <TextBlock Text="{Binding AvailabilityLine}" Foreground="{DynamicResource GoldBrush}"
+                             FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0" />
+                  <TextBlock Text="{Binding FeedbackLine}" Style="{StaticResource SupportingText}"
+                             FontSize="12" Margin="0,8,0,0" />
+                </StackPanel>
+              </Grid>
+
+              <Border Style="{StaticResource SectionCard}" Margin="0,0,0,16">
+                <StackPanel>
+                  <TextBlock Text="WHY THIS WAS RECOMMENDED" Style="{StaticResource EyebrowText}" />
+                  <ItemsControl ItemsSource="{Binding RecommendationReasons}" Margin="0,11,0,0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid Margin="0,0,0,9">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                          </Grid.ColumnDefinitions>
+                          <Ellipse Width="6" Height="6" Fill="{DynamicResource AccentBrush}"
+                                   VerticalAlignment="Top" Margin="0,6,0,0" />
+                          <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap" FontSize="13" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Style="{StaticResource SectionCard}" Margin="0,0,0,16">
+                <StackPanel>
+                  <TextBlock Text="SCORE BREAKDOWN" Style="{StaticResource EyebrowText}" />
+                  <TextBlock Text="Every contribution is deterministic and calculated locally."
+                             Style="{StaticResource SupportingText}" Margin="0,5,0,12" />
+                  <ItemsControl ItemsSource="{Binding ScoreContributions}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid Margin="0,0,0,10">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="62" />
+                            <ColumnDefinition Width="*" />
+                          </Grid.ColumnDefinitions>
+                          <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                          <TextBlock Grid.Column="1" Text="{Binding ValueLabel}"
+                                     Foreground="{DynamicResource GoldBrush}" FontWeight="Bold" />
+                          <TextBlock Grid.Column="2" Text="{Binding Explanation}"
+                                     Style="{StaticResource SupportingText}" TextWrapping="Wrap" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Style="{StaticResource SectionCard}" Margin="0,0,0,16">
+                <StackPanel>
+                  <TextBlock Text="FILM PROFILE" Style="{StaticResource EyebrowText}" />
+                  <TextBlock Text="{Binding FullTagLine}" TextWrapping="Wrap" FontSize="13" Margin="0,10,0,0" />
+                  <TextBlock Text="{Binding ScopeLine}" Style="{StaticResource SupportingText}"
+                             Margin="0,9,0,0" />
+                  <TextBlock Text="{Binding ArtworkStatus}" Style="{StaticResource SupportingText}"
+                             TextWrapping="Wrap" Margin="0,5,0,0" />
+                </StackPanel>
+              </Border>
+
+              <Border Style="{StaticResource SectionCard}">
+                <StackPanel>
+                  <TextBlock Text="TUNE YOUR TASTE" Style="{StaticResource EyebrowText}" />
+                  <TextBlock Text="Your feedback is stored locally and affects future recommendations."
+                             Style="{StaticResource SupportingText}" Margin="0,5,0,12" />
+                  <WrapPanel>
+                    <Button Content="Save for later" Style="{StaticResource QuietButton}"
+                            Command="{Binding DataContext.MarkInterestedCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding Card}" Margin="0,0,8,8" />
+                    <Button Content="Not tonight" Style="{StaticResource QuietButton}"
+                            Command="{Binding DataContext.MarkNotNowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding Card}" Margin="0,0,8,8" />
+                    <Button Content="Already watched" Style="{StaticResource QuietButton}"
+                            Command="{Binding DataContext.MarkWatchedCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding Card}" Margin="0,0,8,8" />
+                    <Button Content="Not for me" Style="{StaticResource QuietButton}"
+                            Command="{Binding DataContext.MarkDislikeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding Card}" Margin="0,0,0,8" />
+                  </WrapPanel>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <Border Grid.ColumnSpan="2" Background="#A0000000" Panel.ZIndex="100">
+      <Border.Style>
+        <Style TargetType="Border">
+          <Setter Property="Visibility" Value="Collapsed" />
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding IsBusy}" Value="True">
+              <Setter Property="Visibility" Value="Visible" />
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </Border.Style>
+      <Border Background="{DynamicResource PanelRaisedBrush}" BorderBrush="{DynamicResource PanelBorderBrush}"
+              BorderThickness="1" CornerRadius="13" Padding="30,24" HorizontalAlignment="Center"
+              VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal">
+          <ProgressBar IsIndeterminate="True" Width="90" Height="7" VerticalAlignment="Center" />
+          <StackPanel Margin="18,0,0,0">
+            <TextBlock Text="Preparing your harbor" FontSize="17" FontWeight="SemiBold" />
+            <TextBlock Text="Verifying data and ranking unseen films…" Style="{StaticResource SupportingText}"
+                       Margin="0,4,0,0" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Border>
+  </Grid>
+</Window>

@@ -1,0 +1,83 @@
+name: alpha2-quality-gates
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-gate:
+    runs-on: windows-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.13'
+      - name: Static artifact validation
+        run: python tools/quality/static_validate.py --root . --report artifacts/validation/static-validation.json
+      - name: Candidate source and dependency security scan
+        shell: powershell
+        run: ./eng/security-scan.ps1 -Configuration Release
+      - name: Formatting gate
+        run: dotnet format HorrorHarbor.sln --verify-no-changes --no-restore
+      - name: Compiler and analyzer gate
+        run: dotnet build HorrorHarbor.sln -c Release --no-restore
+      - name: Unit tests and coverage threshold
+        run: >-
+          dotnet test tests/HorrorHarbor.UnitTests/HorrorHarbor.UnitTests.csproj
+          -c Release --no-build
+          /p:CollectCoverage=true
+          /p:CoverletOutput=../../artifacts/coverage/unit/
+          /p:CoverletOutputFormat=cobertura
+          /p:Threshold=80
+          /p:ThresholdType=line
+          /p:ThresholdStat=total
+      - name: Integration tests
+        run: dotnet test tests/HorrorHarbor.IntegrationTests/HorrorHarbor.IntegrationTests.csproj -c Release --no-build
+      - name: Security tests
+        run: dotnet test tests/HorrorHarbor.SecurityTests/HorrorHarbor.SecurityTests.csproj -c Release --no-build
+      - name: Privacy-neutral catalog smoke gate
+        run: dotnet run --project tests/HorrorHarbor.SelfTest/HorrorHarbor.SelfTest.csproj -c Release --no-build -- data/catalog/recommendation_catalog.json
+      - name: Performance budget gate
+        run: dotnet run --project tests/HorrorHarbor.PerformanceTests/HorrorHarbor.PerformanceTests.csproj -c Release --no-build -- data/catalog/recommendation_catalog.json artifacts/performance/performance-report.json
+      - name: Restore Windows x64 publish dependencies
+        run: dotnet restore src/HorrorHarbor.App/HorrorHarbor.App.csproj -r win-x64 -p:PublishReadyToRun=true -p:NuGetAudit=true -p:NuGetAuditMode=all -p:NuGetAuditLevel=moderate
+      - name: Clean pre-publish build outputs
+        run: dotnet clean HorrorHarbor.sln -c Release
+      - name: Build unsigned Windows x64 candidate
+        shell: powershell
+        run: >-
+          if (Test-Path artifacts/publish/win-x64) { Remove-Item artifacts/publish/win-x64 -Recurse -Force };
+          dotnet publish src/HorrorHarbor.App/HorrorHarbor.App.csproj
+          -c Release -r win-x64 --self-contained true --no-restore
+          -p:PublishReadyToRun=true -p:PublishSingleFile=false
+          -p:DebugSymbols=false -p:DebugType=None
+          -o artifacts/publish/win-x64
+      - name: Remove non-runtime symbol files
+        shell: powershell
+        run: Get-ChildItem artifacts/publish/win-x64 -Recurse -File -Filter '*.pdb' | Remove-Item -Force
+      - name: Verify publish privacy and inventory
+        shell: powershell
+        run: >-
+          ./eng/verify-publish.ps1
+          -PublishDirectory artifacts/publish/win-x64
+          -InventoryPath artifacts/validation/publish-inventory-win-x64.json
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: horrorharbor-alpha2-evidence
+          path: |
+            artifacts/validation/
+            artifacts/coverage/
+            artifacts/performance/
+          if-no-files-found: warn
+          retention-days: 7

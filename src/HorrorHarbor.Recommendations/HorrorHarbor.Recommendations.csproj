@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Explainable deterministic ranking and diversity controls.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HorrorHarbor.Core\HorrorHarbor.Core.csproj" />
+  </ItemGroup>
+</Project>

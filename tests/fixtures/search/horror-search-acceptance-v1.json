@@ -1,0 +1,806 @@
+{
+  "schemaVersion": 1,
+  "corpusRevision": 5,
+  "name": "HorrorHarbor local search acceptance corpus",
+  "description": "Versioned relevance, filtering, honesty, and parser judgments for the Horror Search Engine overhaul.",
+  "catalog": {
+    "relativePath": "data/catalog/recommendation_catalog.json",
+    "sha256AtAuthoring": "B8877705EF092B4C6FA769CE78260CD8B11DEEF7865F18EB1C34DE640DB849C1",
+    "candidateCount": 116,
+    "expectedCoverage": {
+      "originalTitle": 0,
+      "originalLanguage": 0,
+      "franchise": 4,
+      "tmdbId": 0,
+      "verifiedAvailability": 0,
+      "slasher": 38,
+      "extreme": 43
+    },
+    "requiredCorrections": []
+  },
+  "thresholds": {
+    "exactNormalizedTitleTop1": 1.0,
+    "knownItemMrrAt10": 1.0,
+    "requiredResultRecallAt10": 1.0,
+    "maximumForbiddenResultRate": 0.0,
+    "hardFacetPrecision": 1.0,
+    "exclusionPrecision": 1.0,
+    "typoKnownItemTop3": 1.0,
+    "minimumNdcgAt10": 0.95,
+    "diagnosticAccuracy": 1.0,
+    "metadataHonestyAccuracy": 1.0,
+    "determinismRuns": 100
+  },
+  "defaultContext": {
+    "resultLimit": 10,
+    "profile": {
+      "desiredScare": 3,
+      "desiredGore": 2,
+      "desiredDread": 3,
+      "preferSlashers": false,
+      "preferExtreme": false,
+      "novelty": 0.5
+    },
+    "localStatuses": [
+      {
+        "candidateId": "the-descent-2005",
+        "status": "watched"
+      },
+      {
+        "candidateId": "event-horizon-1997",
+        "status": "interested"
+      },
+      {
+        "candidateId": "host-2020",
+        "status": "not-now"
+      },
+      {
+        "candidateId": "martyrs-2008",
+        "status": "disliked"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "known-exact-title-includes-watched",
+      "category": "known-item",
+      "metricTags": ["exact-title", "mrr", "status-honesty"],
+      "query": "The Descent",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopCandidateId": "the-descent-2005",
+      "requiredCandidateIds": ["the-descent-2005"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "the-descent-2005": 3
+      },
+      "requiredEvidenceCodes": ["canonical-title-exact", "status-watched"]
+    },
+    {
+      "id": "known-punctuation-apostrophe",
+      "category": "known-item",
+      "metricTags": ["normalized-title", "mrr"],
+      "query": "title:\"youre next\"",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopCandidateId": "you-re-next-2011",
+      "requiredCandidateIds": ["you-re-next-2011"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "you-re-next-2011": 3
+      },
+      "requiredEvidenceCodes": ["canonical-title-punctuation-alias"]
+    },
+    {
+      "id": "known-punctuation-parentheses",
+      "category": "known-item",
+      "metricTags": ["normalized-title", "mrr"],
+      "query": "frontiers",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopCandidateId": "frontier-s-2007",
+      "requiredCandidateIds": ["frontier-s-2007"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "frontier-s-2007": 3
+      },
+      "requiredEvidenceCodes": ["canonical-title-punctuation-alias"]
+    },
+    {
+      "id": "known-title-phrase",
+      "category": "known-item",
+      "metricTags": ["phrase", "mrr"],
+      "query": "\"event horizon\"",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopCandidateId": "event-horizon-1997",
+      "requiredCandidateIds": ["event-horizon-1997"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "event-horizon-1997": 3
+      },
+      "requiredEvidenceCodes": ["canonical-title-exact", "status-interested"]
+    },
+    {
+      "id": "known-long-scoped-title",
+      "category": "known-item",
+      "metricTags": ["exact-title", "mrr"],
+      "query": "title:\"the autopsy of jane doe\"",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopCandidateId": "the-autopsy-of-jane-doe-2016",
+      "requiredCandidateIds": ["the-autopsy-of-jane-doe-2016"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "the-autopsy-of-jane-doe-2016": 3
+      },
+      "requiredEvidenceCodes": ["canonical-title-exact"]
+    },
+    {
+      "id": "known-roman-arabic-title-alias",
+      "category": "known-item",
+      "metricTags": ["title-alias", "mrr"],
+      "query": "title:\"saw 6\"",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopCandidateId": "saw-vi-2009",
+      "requiredCandidateIds": ["saw-vi-2009"],
+      "forbiddenCandidateIds": ["the-collector-2009", "the-collection-2012"],
+      "relevanceJudgments": {
+        "saw-vi-2009": 3
+      },
+      "requiredEvidenceCodes": ["roman-numeral-title-alias"]
+    },
+    {
+      "id": "known-partial-title-tokens",
+      "category": "known-item",
+      "metricTags": ["title-tokens", "mrr"],
+      "query": "behind mask leslie vernon",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopCandidateId": "behind-the-mask-the-rise-of-leslie-vernon-2006",
+      "requiredCandidateIds": ["behind-the-mask-the-rise-of-leslie-vernon-2006"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "behind-the-mask-the-rise-of-leslie-vernon-2006": 3
+      },
+      "requiredEvidenceCodes": ["canonical-title-all-query-tokens"]
+    },
+    {
+      "id": "known-colon-normalization",
+      "category": "known-item",
+      "metricTags": ["normalized-title", "mrr"],
+      "query": "noroi the curse",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopCandidateId": "noroi-the-curse-2005",
+      "requiredCandidateIds": ["noroi-the-curse-2005"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "noroi-the-curse-2005": 3
+      },
+      "requiredEvidenceCodes": ["canonical-title-normalized-exact"]
+    },
+    {
+      "id": "known-pasted-title-with-colon",
+      "category": "known-item",
+      "metricTags": ["normalized-title", "pasted-title", "mrr"],
+      "query": "Noroi: The Curse",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopCandidateId": "noroi-the-curse-2005",
+      "requiredCandidateIds": ["noroi-the-curse-2005"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "noroi-the-curse-2005": 3
+      },
+      "requiredEvidenceCodes": ["canonical-title-normalized-exact"]
+    },
+    {
+      "id": "known-disliked-title-remains-searchable",
+      "category": "known-item",
+      "metricTags": ["exact-title", "mrr", "status-honesty"],
+      "query": "Martyrs",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopCandidateId": "martyrs-2008",
+      "requiredCandidateIds": ["martyrs-2008"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "martyrs-2008": 3
+      },
+      "requiredEvidenceCodes": ["canonical-title-exact", "status-disliked"]
+    },
+    {
+      "id": "typo-martyrs",
+      "category": "typo-known-item",
+      "metricTags": ["typo-top3"],
+      "query": "martyes",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopThreeCandidateIds": ["martyrs-2008"],
+      "requiredCandidateIds": ["martyrs-2008"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "martyrs-2008": 3
+      },
+      "requiredEvidenceCodes": ["fuzzy-title-edit-distance-1"]
+    },
+    {
+      "id": "typo-gonjiam",
+      "category": "typo-known-item",
+      "metricTags": ["typo-top3"],
+      "query": "gonjam asylum",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopThreeCandidateIds": ["gonjiam-haunted-asylum-2018"],
+      "requiredCandidateIds": ["gonjiam-haunted-asylum-2018"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "gonjiam-haunted-asylum-2018": 3
+      },
+      "requiredEvidenceCodes": ["fuzzy-title-edit-distance-1", "canonical-title-token"]
+    },
+    {
+      "id": "typo-exorcist",
+      "category": "typo-known-item",
+      "metricTags": ["typo-top3"],
+      "query": "exorcst iii",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopThreeCandidateIds": ["the-exorcist-iii-1990"],
+      "requiredCandidateIds": ["the-exorcist-iii-1990"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "the-exorcist-iii-1990": 3
+      },
+      "requiredEvidenceCodes": ["fuzzy-title-edit-distance-1", "canonical-title-token"]
+    },
+    {
+      "id": "typo-hell-house",
+      "category": "typo-known-item",
+      "metricTags": ["typo-top3"],
+      "query": "hell hose llc",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTopThreeCandidateIds": ["hell-house-llc-2015"],
+      "requiredCandidateIds": ["hell-house-llc-2015"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "hell-house-llc-2015": 3
+      },
+      "requiredEvidenceCodes": ["fuzzy-title-edit-distance-1", "canonical-title-token"]
+    },
+    {
+      "id": "concept-found-footage-phrase",
+      "category": "concept",
+      "metricTags": ["ndcg", "phrase", "exact-set"],
+      "query": "tag:\"found footage\"",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 14,
+      "expectedCandidateIdsExact": [
+        "the-medium-2021",
+        "incantation-2022",
+        "noroi-the-curse-2005",
+        "gonjiam-haunted-asylum-2018",
+        "the-taking-of-deborah-logan-2014",
+        "final-prayer-2013",
+        "the-bay-2012",
+        "the-tunnel-2011",
+        "as-above-so-below-2014",
+        "grave-encounters-2011",
+        "hell-house-llc-2015",
+        "host-2020",
+        "unfriended-2014",
+        "the-den-2013"
+      ],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "the-medium-2021": 3,
+        "incantation-2022": 3,
+        "noroi-the-curse-2005": 3,
+        "gonjiam-haunted-asylum-2018": 3,
+        "the-taking-of-deborah-logan-2014": 3,
+        "final-prayer-2013": 3,
+        "the-bay-2012": 3,
+        "the-tunnel-2011": 3,
+        "as-above-so-below-2014": 3,
+        "grave-encounters-2011": 3,
+        "hell-house-llc-2015": 3,
+        "host-2020": 3,
+        "unfriended-2014": 3,
+        "the-den-2013": 3
+      },
+      "requiredEvidenceCodes": ["tag-exact"]
+    },
+    {
+      "id": "concept-diacritic-seance",
+      "category": "concept",
+      "metricTags": ["normalization", "diacritic", "exact-set"],
+      "query": "tag:seance",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 1,
+      "expectedCandidateIdsExact": ["host-2020"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "host-2020": 3
+      },
+      "requiredEvidenceCodes": ["tag-exact-normalized"]
+    },
+    {
+      "id": "concept-cosmic-lens",
+      "category": "concept",
+      "metricTags": ["ndcg", "hard-facet", "exact-set"],
+      "query": "lens:cosmic",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 7,
+      "expectedCandidateIdsExact": [
+        "the-void-2016",
+        "the-empty-man-2020",
+        "prince-of-darkness-1987",
+        "in-the-mouth-of-madness-1994",
+        "event-horizon-1997",
+        "pandorum-2009",
+        "color-out-of-space-2019"
+      ],
+      "forbiddenCandidateIds": ["underwater-2020"],
+      "relevanceJudgments": {
+        "the-void-2016": 3,
+        "the-empty-man-2020": 3,
+        "prince-of-darkness-1987": 3,
+        "in-the-mouth-of-madness-1994": 3,
+        "event-horizon-1997": 3,
+        "pandorum-2009": 3,
+        "color-out-of-space-2019": 3
+      },
+      "requiredEvidenceCodes": ["primary-lens-match"]
+    },
+    {
+      "id": "concept-cosmic-isolation",
+      "category": "concept",
+      "metricTags": ["ndcg", "multi-token", "exact-set"],
+      "query": "cosmic isolation",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 8,
+      "expectedCandidateIdsExact": [
+        "the-void-2016",
+        "the-empty-man-2020",
+        "prince-of-darkness-1987",
+        "in-the-mouth-of-madness-1994",
+        "event-horizon-1997",
+        "pandorum-2009",
+        "underwater-2020",
+        "color-out-of-space-2019"
+      ],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {
+        "the-void-2016": 3,
+        "the-empty-man-2020": 3,
+        "prince-of-darkness-1987": 3,
+        "in-the-mouth-of-madness-1994": 3,
+        "event-horizon-1997": 3,
+        "pandorum-2009": 3,
+        "color-out-of-space-2019": 3,
+        "underwater-2020": 2
+      },
+      "requiredEvidenceCodes": ["all-positive-clauses-matched"]
+    },
+    {
+      "id": "concept-home-invasion-exclude-extreme",
+      "category": "concept",
+      "metricTags": ["ndcg", "exclusion", "hard-facet", "exact-set"],
+      "query": "tag:\"home invasion\" -extreme:true",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 5,
+      "expectedCandidateIdsExact": [
+        "the-collector-2009",
+        "hush-2016",
+        "you-re-next-2011",
+        "the-strangers-2008",
+        "sick-2022"
+      ],
+      "forbiddenCandidateIds": ["high-tension-2003", "inside-2007"],
+      "relevanceJudgments": {
+        "hush-2016": 3,
+        "you-re-next-2011": 3,
+        "the-strangers-2008": 3,
+        "the-collector-2009": 2,
+        "sick-2022": 2
+      },
+      "requiredEvidenceCodes": ["tag-exact", "exclusion-satisfied"]
+    },
+    {
+      "id": "facet-recent-horror-comedy",
+      "category": "hard-facet",
+      "metricTags": ["hard-facet", "exact-set"],
+      "query": "tag:\"horror comedy\" year:>=2020",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 5,
+      "expectedCandidateIdsExact": [
+        "deadstream-2022",
+        "the-blackening-2022",
+        "vicious-fun-2020",
+        "scare-me-2020",
+        "psycho-goreman-2020"
+      ],
+      "forbiddenCandidateIds": ["tucker-and-dale-vs-evil-2010"],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["tag-exact", "year-filter-satisfied"]
+    },
+    {
+      "id": "facet-extreme-2000s-gore-five",
+      "category": "hard-facet",
+      "metricTags": ["hard-facet", "exact-set"],
+      "query": "year:2000..2009 gore:>=5 extreme:true",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "filtered-discovery",
+      "expectedTotalCount": 6,
+      "expectedCandidateIdsExact": [
+        "high-tension-2003",
+        "inside-2007",
+        "frontier-s-2007",
+        "martyrs-2008",
+        "the-loved-ones-2009",
+        "saw-vi-2009"
+      ],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["year-filter-satisfied", "gore-filter-satisfied", "extreme-filter-satisfied"]
+    },
+    {
+      "id": "facet-short-high-scare",
+      "category": "hard-facet",
+      "metricTags": ["hard-facet", "exact-set"],
+      "query": "runtime:<90 scare:>=5",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "filtered-discovery",
+      "expectedTotalCount": 7,
+      "expectedCandidateIdsExact": [
+        "inside-2007",
+        "the-strangers-2008",
+        "the-autopsy-of-jane-doe-2016",
+        "final-prayer-2013",
+        "caveat-2020",
+        "possum-2018",
+        "host-2020"
+      ],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["runtime-filter-satisfied", "scare-filter-satisfied"]
+    },
+    {
+      "id": "facet-recent-cosmic-lens",
+      "category": "hard-facet",
+      "metricTags": ["hard-facet", "exact-set"],
+      "query": "lens:cosmic year:>=2016",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 3,
+      "expectedCandidateIdsExact": [
+        "the-void-2016",
+        "the-empty-man-2020",
+        "color-out-of-space-2019"
+      ],
+      "forbiddenCandidateIds": ["underwater-2020"],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["primary-lens-match", "year-filter-satisfied"]
+    },
+    {
+      "id": "facet-eighties-slashers",
+      "category": "hard-facet",
+      "metricTags": ["hard-facet", "exact-set"],
+      "query": "slasher:true year:1980..1989",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "filtered-discovery",
+      "expectedTotalCount": 8,
+      "expectedCandidateIdsExact": [
+        "my-bloody-valentine-1981",
+        "the-burning-1981",
+        "the-prowler-1981",
+        "stage-fright-1987",
+        "pieces-1982",
+        "the-mutilator-1984",
+        "intruder-1989",
+        "friday-the-13th-1980"
+      ],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["slasher-filter-satisfied", "year-filter-satisfied"]
+    },
+    {
+      "id": "facet-recent-maximum-dread",
+      "category": "hard-facet",
+      "metricTags": ["hard-facet", "exact-set"],
+      "query": "year:2020..2024 dread:>=5",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "filtered-discovery",
+      "expectedTotalCount": 14,
+      "expectedCandidateIdsExact": [
+        "the-sadness-2021",
+        "when-evil-lurks-2023",
+        "the-dark-and-the-wicked-2020",
+        "the-medium-2021",
+        "incantation-2022",
+        "caveat-2020",
+        "oddity-2024",
+        "relic-2020",
+        "the-night-house-2020",
+        "the-empty-man-2020",
+        "host-2020",
+        "possessor-2020",
+        "infinity-pool-2023",
+        "talk-to-me-2022"
+      ],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["year-filter-satisfied", "dread-filter-satisfied"]
+    },
+    {
+      "id": "facet-found-footage-high-scare-short",
+      "category": "hard-facet",
+      "metricTags": ["hard-facet", "exact-set"],
+      "query": "tag:\"found footage\" scare:5 runtime:<=100",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 5,
+      "expectedCandidateIdsExact": [
+        "gonjiam-haunted-asylum-2018",
+        "the-taking-of-deborah-logan-2014",
+        "final-prayer-2013",
+        "hell-house-llc-2015",
+        "host-2020"
+      ],
+      "forbiddenCandidateIds": ["the-medium-2021"],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["tag-exact", "scare-filter-satisfied", "runtime-filter-satisfied"]
+    },
+    {
+      "id": "facet-availability-unknown-honesty",
+      "category": "metadata-honesty",
+      "metricTags": ["hard-facet", "metadata-honesty"],
+      "query": "availability:unknown",
+      "expectedOutcome": "success",
+      "expectedIntent": "filtered-discovery",
+      "expectedTotalCount": 116,
+      "requiredCandidateIds": ["the-descent-2005", "saw-vi-2009", "host-2020"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["availability-unknown"]
+    },
+    {
+      "id": "facet-language-does-not-infer-tags",
+      "category": "metadata-honesty",
+      "metricTags": ["metadata-honesty"],
+      "query": "language:ko",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 0,
+      "requiredCandidateIds": [],
+      "forbiddenCandidateIds": ["the-wailing-2016", "gonjiam-haunted-asylum-2018"],
+      "expectedWarningCodes": ["facet-no-coverage"],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": []
+    },
+    {
+      "id": "facet-verified-availability-no-coverage",
+      "category": "metadata-honesty",
+      "metricTags": ["metadata-honesty"],
+      "query": "availability:verified",
+      "expectedOutcome": "success",
+      "expectedIntent": "filtered-discovery",
+      "expectedTotalCount": 0,
+      "requiredCandidateIds": [],
+      "forbiddenCandidateIds": [],
+      "expectedWarningCodes": ["facet-no-verified-coverage"],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": []
+    },
+    {
+      "id": "facet-corrected-saw-franchise",
+      "category": "metadata-integrity",
+      "metricTags": ["hard-facet", "metadata-honesty", "exact-set"],
+      "query": "franchise:saw",
+      "resultLimit": 20,
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 1,
+      "expectedCandidateIdsExact": ["saw-vi-2009"],
+      "forbiddenCandidateIds": ["the-collector-2009", "the-collection-2012"],
+      "relevanceJudgments": {
+        "saw-vi-2009": 3
+      },
+      "requiredEvidenceCodes": ["franchise-match"]
+    },
+    {
+      "id": "filter-only-exclusions",
+      "category": "exclusion",
+      "metricTags": ["exclusion"],
+      "query": "-tag:\"horror comedy\"",
+      "expectedOutcome": "success",
+      "expectedIntent": "filtered-discovery",
+      "expectedTotalCount": 107,
+      "requiredCandidateIds": ["the-descent-2005", "event-horizon-1997"],
+      "forbiddenCandidateIds": [
+        "deadstream-2022",
+        "the-blackening-2022",
+        "tucker-and-dale-vs-evil-2010",
+        "behind-the-mask-the-rise-of-leslie-vernon-2006",
+        "the-final-girls-2015",
+        "vicious-fun-2020",
+        "scare-me-2020",
+        "one-cut-of-the-dead-2017",
+        "psycho-goreman-2020"
+      ],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["exclusion-satisfied"]
+    },
+    {
+      "id": "status-watched-filter",
+      "category": "local-status",
+      "metricTags": ["hard-facet", "exact-set"],
+      "query": "status:watched",
+      "expectedOutcome": "success",
+      "expectedIntent": "filtered-discovery",
+      "expectedTotalCount": 1,
+      "expectedCandidateIdsExact": ["the-descent-2005"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["status-watched"]
+    },
+    {
+      "id": "status-disliked-filter",
+      "category": "local-status",
+      "metricTags": ["hard-facet", "exact-set"],
+      "query": "status:disliked",
+      "expectedOutcome": "success",
+      "expectedIntent": "filtered-discovery",
+      "expectedTotalCount": 1,
+      "expectedCandidateIdsExact": ["martyrs-2008"],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": ["status-disliked"]
+    },
+    {
+      "id": "security-sql-looking-text-is-data",
+      "category": "safe-input",
+      "metricTags": ["injection-safety"],
+      "query": "title:\"x' OR 1=1 --\"",
+      "expectedOutcome": "success",
+      "expectedIntent": "local-search",
+      "expectedTotalCount": 0,
+      "requiredCandidateIds": [],
+      "forbiddenCandidateIds": [],
+      "relevanceJudgments": {},
+      "requiredEvidenceCodes": []
+    },
+    {
+      "id": "invalid-descending-year-range",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic"],
+      "query": "year:2024..2000",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "invalid-range"
+    },
+    {
+      "id": "invalid-unknown-field",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic"],
+      "query": "director:carpenter",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "unknown-field"
+    },
+    {
+      "id": "invalid-empty-field-value",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic"],
+      "query": "tag:",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "missing-value"
+    },
+    {
+      "id": "invalid-unterminated-quote",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic"],
+      "query": "title:\"the descent",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "unterminated-quote"
+    },
+    {
+      "id": "invalid-intensity-out-of-range",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic"],
+      "query": "scare:6",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "value-out-of-range"
+    },
+    {
+      "id": "invalid-boolean",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic"],
+      "query": "slasher:maybe",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "invalid-boolean"
+    },
+    {
+      "id": "invalid-runtime-number",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic"],
+      "query": "runtime:fast",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "invalid-number"
+    },
+    {
+      "id": "invalid-missing-comparison-value",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic"],
+      "query": "year:>=",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "missing-value"
+    },
+    {
+      "id": "invalid-clause-limit",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic", "complexity-limit"],
+      "query": "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty twentyone twentytwo twentythree twentyfour twentyfive twentysix twentyseven twentyeight twentynine thirty thirtyone thirtytwo thirtythree",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "clause-limit-exceeded"
+    },
+    {
+      "id": "invalid-control-character",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic", "safe-input"],
+      "query": "host\u0001found footage",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "control-character"
+    },
+    {
+      "id": "invalid-unsafe-format-character",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic", "safe-input", "unicode-safety"],
+      "query": "host\u202Efound footage",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "unsafe-format-character"
+    },
+    {
+      "id": "invalid-textual-facet-operator",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic", "operator-safety"],
+      "query": "tag:>=cosmic",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "invalid-operator"
+    },
+    {
+      "id": "invalid-availability-operator",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic", "operator-safety"],
+      "query": "availability:>=shudder",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "invalid-operator"
+    },
+    {
+      "id": "invalid-extra-range-separator",
+      "category": "invalid-query",
+      "metricTags": ["diagnostic", "range-safety"],
+      "query": "year:2000...2009",
+      "expectedOutcome": "invalid-query",
+      "expectedDiagnosticCode": "invalid-range"
+    }
+  ]
+}

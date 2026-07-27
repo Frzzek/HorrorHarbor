@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\NocturneHarbor.ico</ApplicationIcon>
+    <AssemblyName>HorrorHarbor</AssemblyName>
+    <RootNamespace>HorrorHarbor.App</RootNamespace>
+    <Description>Nocturne Harbor, a Windows 11 horror-discovery theater.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Assets\NocturneHarbor.ico" />
+    <None Update="Assets\NocturneHarbor-preview.png" />
+    <ProjectReference Include="..\HorrorHarbor.Core\HorrorHarbor.Core.csproj" />
+    <ProjectReference Include="..\HorrorHarbor.Data\HorrorHarbor.Data.csproj" />
+    <ProjectReference Include="..\HorrorHarbor.Recommendations\HorrorHarbor.Recommendations.csproj" />
+    <ProjectReference Include="..\HorrorHarbor.Posters\HorrorHarbor.Posters.csproj" />
+    <ProjectReference Include="..\HorrorHarbor.Search\HorrorHarbor.Search.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\data\catalog\recommendation_catalog.json"
+          Link="data\catalog\recommendation_catalog.json"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Update="appsettings*.json"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

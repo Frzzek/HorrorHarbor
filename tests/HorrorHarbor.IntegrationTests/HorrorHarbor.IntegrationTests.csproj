@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HorrorHarbor.Core\HorrorHarbor.Core.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Data\HorrorHarbor.Data.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.App\HorrorHarbor.App.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Search\HorrorHarbor.Search.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Tools.PosterAudit\HorrorHarbor.Tools.PosterAudit.csproj" />
+    <PackageReference Include="MSTest" />
+    <PackageReference Include="coverlet.msbuild" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\data\catalog\recommendation_catalog.json" Link="data\catalog\recommendation_catalog.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

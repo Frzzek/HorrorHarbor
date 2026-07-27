@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Per-user SQLite persistence and hardened Plex integration.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HorrorHarbor.Core\HorrorHarbor.Core.csproj" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <!-- Pin the native SQLite provider above the vulnerable transitive version. -->
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" />
+  </ItemGroup>
+</Project>

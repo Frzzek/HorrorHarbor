@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HorrorHarbor.Core\HorrorHarbor.Core.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Recommendations\HorrorHarbor.Recommendations.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Posters\HorrorHarbor.Posters.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Search\HorrorHarbor.Search.csproj" />
+    <PackageReference Include="MSTest" />
+    <PackageReference Include="coverlet.msbuild" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\fixtures\search\horror-search-acceptance-v1.json" Link="fixtures\search\horror-search-acceptance-v1.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

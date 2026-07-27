@@ -1,0 +1,27 @@
+**/bin/
+**/obj/
+**/TestResults/
+artifacts/
+.vs/
+.idea/
+*.user
+*.suo
+*.tmp
+*.log
+*.corrupt-*
+.env
+.env.*
+!.env.example
+secrets.json
+appsettings.Local.json
+# Provider artwork is licensed, per-user cache data and must never enter a release.
+official-posters-v1/
+**/official-posters-v1/
+personal-hybrid-artwork/
+**/personal-hybrid-artwork/
+# Per-user state, credentials, IDE state, and machine-local databases.
+*.db-shm
+*.db-wal
+user-data/
+**/user-data/
+.vscode/

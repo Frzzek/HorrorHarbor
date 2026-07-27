@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Deterministic, explainable, local-first horror catalog search.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HorrorHarbor.Core\HorrorHarbor.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="HorrorHarbor.UnitTests" />
+    <InternalsVisibleTo Include="HorrorHarbor.SecurityTests" />
+  </ItemGroup>
+</Project>

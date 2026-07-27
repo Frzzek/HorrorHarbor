@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Dependency-light release gate tests executable on CI and Windows build machines.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HorrorHarbor.Core\HorrorHarbor.Core.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Data\HorrorHarbor.Data.csproj" />
+    <ProjectReference Include="..\..\src\HorrorHarbor.Recommendations\HorrorHarbor.Recommendations.csproj" />
+  </ItemGroup>
+</Project>
