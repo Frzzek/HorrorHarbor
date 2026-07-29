@@ -4,6 +4,8 @@
 artifacts/
 .vs/
 .idea/
+**/__pycache__/
+*.py[cod]
 *.user
 *.suo
 *.tmp
@@ -25,3 +27,10 @@ personal-hybrid-artwork/
 user-data/
 **/user-data/
 .vscode/
+
+# Personal career documents — never commit
+**/*[Rr]esume*
+**/*[Cc][Vv]*
+**/*.doc
+**/*.docx
+**/*.pdf
