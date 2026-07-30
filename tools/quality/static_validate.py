@@ -15,6 +15,10 @@ from pathlib import Path
 GENERATED_DIRECTORY_NAMES = frozenset(
     {".git", ".vs", "artifacts", "bin", "obj", "testresults"}
 )
+POST_PUBLISH_PROJECT = (
+    "tools/quality/PublishedStorageProbe/"
+    "HorrorHarbor.PublishedStorageProbe.csproj"
+)
 
 
 def authored_files(root: Path, suffixes: frozenset[str] | None = None) -> Iterator[Path]:
@@ -117,8 +121,24 @@ def main() -> int:
 
     sln = (root / "HorrorHarbor.sln").read_text(encoding="utf-8")
     project_files = list(authored_files(root, frozenset({".csproj"})))
-    missing_from_solution = [p.relative_to(root).as_posix() for p in project_files if p.name not in sln]
-    check(not missing_from_solution, "solution-project-coverage", f"Missing={missing_from_solution}", results)
+    missing_from_solution = sorted(
+        p.relative_to(root).as_posix() for p in project_files if p.name not in sln
+    )
+    unexpected_missing_projects = [
+        path for path in missing_from_solution if path != POST_PUBLISH_PROJECT
+    ]
+    check(
+        not unexpected_missing_projects,
+        "solution-project-coverage",
+        f"UnexpectedMissing={unexpected_missing_projects}",
+        results,
+    )
+    check(
+        missing_from_solution == [POST_PUBLISH_PROJECT],
+        "post-publish-probe-boundary",
+        f"ExpectedNonSolutionProject={POST_PUBLISH_PROJECT}; Missing={missing_from_solution}",
+        results,
+    )
 
     search_root = root / "src/HorrorHarbor.Search"
     search_project_path = search_root / "HorrorHarbor.Search.csproj"

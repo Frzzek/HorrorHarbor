@@ -2,7 +2,13 @@ name: alpha2-quality-gates
 
 on:
   push:
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -23,6 +29,13 @@ jobs:
           python-version: '3.13'
       - name: Static artifact validation
         run: python tools/quality/static_validate.py --root . --report artifacts/validation/static-validation.json
+      - name: Encrypted SQLite provider policy
+        run: >-
+          python tools/quality/audit_sqlite_provider.py --self-test
+          && python tools/quality/audit_sqlite_provider.py
+          --root . --report artifacts/validation/sqlite-provider-policy.json
+      - name: Keyless database opacity inspector self-test
+        run: python tools/quality/verify_encrypted_database.py --self-test
       - name: Candidate source and dependency security scan
         shell: powershell
         run: ./eng/security-scan.ps1 -Configuration Release
@@ -46,6 +59,21 @@ jobs:
         run: dotnet test tests/HorrorHarbor.SecurityTests/HorrorHarbor.SecurityTests.csproj -c Release --no-build
       - name: Privacy-neutral catalog smoke gate
         run: dotnet run --project tests/HorrorHarbor.SelfTest/HorrorHarbor.SelfTest.csproj -c Release --no-build -- data/catalog/recommendation_catalog.json
+      - name: Catalog-wide generated artwork gate
+        shell: powershell
+        run: |
+          $output = 'artifacts/poster-audit/ci-quality-gate'
+          dotnet run --project src/HorrorHarbor.Tools.PosterAudit/HorrorHarbor.Tools.PosterAudit.csproj `
+            -c Release --no-build -- `
+            --catalog data/catalog/recommendation_catalog.json `
+            --output $output `
+            --width 480 `
+            --height 720 `
+            --maximum-file-bytes 5000000
+          if ($LASTEXITCODE -ne 0) { throw 'Catalog-wide generated artwork gate failed.' }
+          New-Item -ItemType Directory -Force -Path artifacts/validation | Out-Null
+          Copy-Item "$output/summary.json" artifacts/validation/poster-audit-summary.json
+          Copy-Item "$output/failures.json" artifacts/validation/poster-audit-failures.json
       - name: Performance budget gate
         run: dotnet run --project tests/HorrorHarbor.PerformanceTests/HorrorHarbor.PerformanceTests.csproj -c Release --no-build -- data/catalog/recommendation_catalog.json artifacts/performance/performance-report.json
       - name: Restore Windows x64 publish dependencies
@@ -70,6 +98,12 @@ jobs:
           ./eng/verify-publish.ps1
           -PublishDirectory artifacts/publish/win-x64
           -InventoryPath artifacts/validation/publish-inventory-win-x64.json
+      - name: Verify exact-payload encrypted storage runtime
+        shell: powershell
+        run: >-
+          ./tools/quality/verify-published-storage.ps1
+          -PublishDirectory artifacts/publish/win-x64
+          -ReportPath artifacts/validation/published-storage-runtime-win-x64.json
       - name: Upload validation evidence
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

@@ -5,7 +5,9 @@
 HorrorHarbor is an independent community project. It is not reviewed, approved,
 or endorsed by Plex.
 
-Plex and Plex Media Server are trademarks of Plex and used under a license.
+Plex and Plex Media Server are trademarks of Plex, Inc. or its affiliates. Their
+names are used only to identify the optional interoperable service described by
+this project.
 
 - [Plex developer documentation](https://developer.plex.tv/)
 - [Plex trademark guidelines](https://www.plex.tv/about/privacy-legal/plex-trademarks-and-guidelines/)
@@ -33,10 +35,12 @@ transitive dependencies remain subject to their own package notices and terms.
 
 | Dependency | License |
 |---|---|
-| Microsoft.Data.Sqlite | MIT |
+| Microsoft.Data.Sqlite.Core | MIT |
 | Microsoft.Extensions.Hosting | MIT |
 | System.Security.Cryptography.ProtectedData | MIT |
-| SQLitePCLRaw.lib.e_sqlite3 | Apache-2.0; bundled SQLite is public domain |
+| SQLite3MC.PCLRaw.bundle | MIT; includes SQLite3 Multiple Ciphers 2.3.6 based on SQLite 3.53.3 |
+| SQLite3MC.PCLRaw.lib and SQLite3MC.PCLRaw.provider (transitive) | MIT |
+| SQLitePCLRaw.core (transitive) | Apache-2.0 |
 | SkiaSharp and SkiaSharp.NativeAssets.Win32 | MIT |
 | MSTest | MIT |
 | Coverlet | MIT |

@@ -14,7 +14,12 @@ try {
         /p:ThresholdType=line `
         /p:ThresholdStat=total
     if ($LASTEXITCODE -ne 0) { throw 'Unit tests or coverage gate failed.' }
-    dotnet test tests/HorrorHarbor.IntegrationTests/HorrorHarbor.IntegrationTests.csproj -c $Configuration --no-build
+    $integrationResults = 'artifacts/test-results/quality-gate-integration'
+    dotnet test tests/HorrorHarbor.IntegrationTests/HorrorHarbor.IntegrationTests.csproj `
+        -c $Configuration `
+        --no-build `
+        --logger 'trx;LogFileName=integration.trx' `
+        --results-directory $integrationResults
     if ($LASTEXITCODE -ne 0) { throw 'Integration tests failed.' }
     dotnet test tests/HorrorHarbor.SecurityTests/HorrorHarbor.SecurityTests.csproj -c $Configuration --no-build
     if ($LASTEXITCODE -ne 0) { throw 'Security tests failed.' }

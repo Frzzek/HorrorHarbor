@@ -4,9 +4,9 @@
     <Description>Per-user SQLite persistence and hardened Plex integration.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="HorrorHarbor.IntegrationTests" />
     <ProjectReference Include="..\HorrorHarbor.Core\HorrorHarbor.Core.csproj" />
-    <PackageReference Include="Microsoft.Data.Sqlite" />
-    <!-- Pin the native SQLite provider above the vulnerable transitive version. -->
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" />
+    <PackageReference Include="SQLite3MC.PCLRaw.bundle" />
   </ItemGroup>
 </Project>

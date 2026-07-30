@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security.Cryptography;
 using HorrorHarbor.Core.Abstractions;
 using HorrorHarbor.Core.Models;
 using HorrorHarbor.Core.Validation;
@@ -9,18 +10,22 @@ namespace HorrorHarbor.Data.UserData;
 
 public sealed class SqliteUserDataStore : IUserDataStore, IDisposable
 {
-    private const int CurrentSchemaVersion = 1;
-    private readonly string _connectionString;
-    private readonly SemaphoreSlim _gate = new(1, 1);
+    public const int EncryptionKeyLength = 32;
 
-    public SqliteUserDataStore()
-        : this(UserDataPathResolver.Resolve())
+    private readonly string _databasePath;
+    private readonly IUserDataEncryptionKeyProvider _keyProvider;
+    private readonly SemaphoreSlim _gate = new(1, 1);
+    private byte[]? _encryptionKey;
+
+    public SqliteUserDataStore(IUserDataEncryptionKeyProvider keyProvider)
+        : this(UserDataPathResolver.Resolve(), keyProvider)
     {
     }
 
-    public SqliteUserDataStore(string path)
+    public SqliteUserDataStore(string path, IUserDataEncryptionKeyProvider keyProvider)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(keyProvider);
         string fullPath = Path.GetFullPath(path);
         string? directory = Path.GetDirectoryName(fullPath);
         if (string.IsNullOrWhiteSpace(directory))
@@ -29,14 +34,8 @@ public sealed class SqliteUserDataStore : IUserDataStore, IDisposable
         }
 
         Directory.CreateDirectory(directory);
-        _connectionString = new SqliteConnectionStringBuilder
-        {
-            DataSource = fullPath,
-            Mode = SqliteOpenMode.ReadWriteCreate,
-            Cache = SqliteCacheMode.Shared,
-            ForeignKeys = true,
-            Pooling = true,
-        }.ToString();
+        _databasePath = fullPath;
+        _keyProvider = keyProvider;
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
@@ -44,61 +43,80 @@ public sealed class SqliteUserDataStore : IUserDataStore, IDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await using SqliteConnection connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
-            await using SqliteTransaction transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-            await ExecuteAsync(connection, transaction, """
-                CREATE TABLE IF NOT EXISTS schema_version (
-                    version INTEGER PRIMARY KEY,
-                    applied_utc TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS plex_server (
-                    connection_id TEXT PRIMARY KEY,
-                    server_url TEXT NOT NULL,
-                    allow_insecure_http INTEGER NOT NULL CHECK (allow_insecure_http IN (0, 1)),
-                    machine_identifier TEXT NOT NULL,
-                    name TEXT NOT NULL,
-                    version TEXT NOT NULL,
-                    last_synced_utc TEXT NULL
-                );
-                CREATE TABLE IF NOT EXISTS plex_history (
-                    history_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    connection_id TEXT NOT NULL,
-                    rating_key TEXT NOT NULL,
-                    media_type TEXT NOT NULL,
-                    title TEXT NOT NULL,
-                    release_year INTEGER NULL,
-                    plex_guid TEXT NULL,
-                    viewed_at_utc TEXT NOT NULL,
-                    view_offset_ms INTEGER NULL,
-                    duration_ms INTEGER NULL,
-                    normalized_title TEXT NOT NULL,
-                    watch_exclusion_key TEXT NOT NULL,
-                    UNIQUE(connection_id, rating_key, viewed_at_utc),
-                    FOREIGN KEY(connection_id) REFERENCES plex_server(connection_id) ON DELETE CASCADE
-                );
-                CREATE INDEX IF NOT EXISTS ix_plex_history_viewed_at ON plex_history(viewed_at_utc);
-                CREATE TABLE IF NOT EXISTS feedback_event (
-                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    candidate_id TEXT NOT NULL,
-                    feedback INTEGER NOT NULL,
-                    created_utc TEXT NOT NULL,
-                    is_undone INTEGER NOT NULL DEFAULT 0 CHECK (is_undone IN (0, 1))
-                );
-                CREATE INDEX IF NOT EXISTS ix_feedback_candidate ON feedback_event(candidate_id, event_id DESC);
-                CREATE TABLE IF NOT EXISTS user_setting (
-                    setting_key TEXT PRIMARY KEY,
-                    setting_value TEXT NOT NULL,
-                    updated_utc TEXT NOT NULL
-                );
-                """, cancellationToken).ConfigureAwait(false);
+            if (Volatile.Read(ref _encryptionKey) is not null)
+            {
+                return;
+            }
 
-            await using SqliteCommand versionCommand = connection.CreateCommand();
-            versionCommand.Transaction = transaction;
-            versionCommand.CommandText = "INSERT OR IGNORE INTO schema_version(version, applied_utc) VALUES ($version, $utc);";
-            versionCommand.Parameters.AddWithValue("$version", CurrentSchemaVersion);
-            versionCommand.Parameters.AddWithValue("$utc", FormatUtc(DateTime.UtcNow));
-            await versionCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            await using UserDataInitializationLock initializationLock =
+                await UserDataInitializationLock.AcquireAsync(
+                    _databasePath,
+                    cancellationToken).ConfigureAwait(false);
+
+            byte[]? key = await _keyProvider.LoadKeyAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                bool recoveryExists =
+                    File.Exists(_databasePath + ".encryption-replacement-backup") ||
+                    File.Exists(_databasePath + ".encryption-recovery-state.json");
+                bool databaseExists = File.Exists(_databasePath) && new FileInfo(_databasePath).Length > 0;
+                if (key is null)
+                {
+                    if (recoveryExists ||
+                        (databaseExists &&
+                        !await IsPlaintextDatabaseAsync(cancellationToken).ConfigureAwait(false))
+                    )
+                    {
+                        throw new CryptographicException(
+                            "The encrypted user-data database exists, but its current-user key is unavailable.");
+                    }
+
+                    key = await CreateOrLoadKeyAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                ValidateKey(key);
+                await UserDataDatabaseMigrator.ReconcileAsync(
+                    _databasePath,
+                    key,
+                    cancellationToken).ConfigureAwait(false);
+                databaseExists = File.Exists(_databasePath) && new FileInfo(_databasePath).Length > 0;
+                if (databaseExists)
+                {
+                    bool encrypted = await IsEncryptedDatabaseAsync(key, cancellationToken).ConfigureAwait(false);
+                    if (!encrypted)
+                    {
+                        if (!await IsPlaintextDatabaseAsync(cancellationToken).ConfigureAwait(false))
+                        {
+                            throw new CryptographicException(
+                                "The user-data database could not be decrypted with the protected key.");
+                        }
+
+                        await UserDataDatabaseMigrator.MigratePlaintextAsync(
+                            _databasePath,
+                            key,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
+                await using SqliteConnection connection =
+                    await EncryptedSqliteConnectionFactory.OpenEncryptedAsync(
+                        _databasePath,
+                        SqliteOpenMode.ReadWriteCreate,
+                        key,
+                        useWriteAheadLog: true,
+                        cancellationToken).ConfigureAwait(false);
+                await UserDataSchema.InitializeAsync(connection, cancellationToken).ConfigureAwait(false);
+                await UserDataSchema.ValidateAsync(connection, cancellationToken).ConfigureAwait(false);
+                Volatile.Write(ref _encryptionKey, key);
+                key = null;
+            }
+            finally
+            {
+                if (key is not null)
+                {
+                    CryptographicOperations.ZeroMemory(key);
+                }
+            }
         }
         finally
         {
@@ -372,29 +390,100 @@ public sealed class SqliteUserDataStore : IUserDataStore, IDisposable
 
     public void Dispose()
     {
+        byte[]? key = Interlocked.Exchange(ref _encryptionKey, null);
+        if (key is not null)
+        {
+            CryptographicOperations.ZeroMemory(key);
+        }
+
         _gate.Dispose();
     }
 
     private async Task<SqliteConnection> OpenAsync(CancellationToken cancellationToken)
     {
-        var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await using SqliteCommand command = connection.CreateCommand();
-        command.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA busy_timeout=5000;";
-        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-        return connection;
+        byte[] key = Volatile.Read(ref _encryptionKey) ??
+            throw new InvalidOperationException("The encrypted user-data store has not been initialized.");
+        return await EncryptedSqliteConnectionFactory.OpenEncryptedAsync(
+            _databasePath,
+            SqliteOpenMode.ReadWrite,
+            key,
+            useWriteAheadLog: true,
+            cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task ExecuteAsync(
-        SqliteConnection connection,
-        SqliteTransaction transaction,
-        string sql,
+    private async Task<byte[]> CreateOrLoadKeyAsync(CancellationToken cancellationToken)
+    {
+        byte[] generated = RandomNumberGenerator.GetBytes(EncryptionKeyLength);
+        try
+        {
+            if (await _keyProvider.TrySaveKeyAsync(generated, cancellationToken).ConfigureAwait(false))
+            {
+                byte[] result = generated;
+                generated = Array.Empty<byte>();
+                return result;
+            }
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(generated);
+        }
+
+        byte[]? existing = await _keyProvider.LoadKeyAsync(cancellationToken).ConfigureAwait(false);
+        if (existing is null)
+        {
+            throw new CryptographicException("The user-data encryption key could not be created atomically.");
+        }
+
+        ValidateKey(existing);
+        return existing;
+    }
+
+    private async Task<bool> IsEncryptedDatabaseAsync(
+        ReadOnlyMemory<byte> key,
         CancellationToken cancellationToken)
     {
-        await using SqliteCommand command = connection.CreateCommand();
-        command.Transaction = transaction;
-        command.CommandText = sql;
-        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await using SqliteConnection connection =
+                await EncryptedSqliteConnectionFactory.OpenEncryptedAsync(
+                    _databasePath,
+                    SqliteOpenMode.ReadWrite,
+                    key,
+                    useWriteAheadLog: false,
+                    cancellationToken).ConfigureAwait(false);
+            await UserDataSchema.ValidateAsync(connection, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+        catch (SqliteException exception) when (exception.SqliteErrorCode == 26)
+        {
+            return false;
+        }
+    }
+
+    private async Task<bool> IsPlaintextDatabaseAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using SqliteConnection connection =
+                await EncryptedSqliteConnectionFactory.OpenPlaintextAsync(
+                    _databasePath,
+                    cancellationToken).ConfigureAwait(false);
+            await UserDataSchema.ValidateAsync(connection, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+        catch (SqliteException exception) when (exception.SqliteErrorCode == 26)
+        {
+            return false;
+        }
+    }
+
+    private static void ValidateKey(byte[] key)
+    {
+        if (key.Length != EncryptionKeyLength)
+        {
+            CryptographicOperations.ZeroMemory(key);
+            throw new CryptographicException("The user-data encryption key has an invalid length.");
+        }
     }
 
     private static string FormatUtc(DateTime value) => value.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture);

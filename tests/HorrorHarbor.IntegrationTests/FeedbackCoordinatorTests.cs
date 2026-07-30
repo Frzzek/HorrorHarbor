@@ -18,7 +18,10 @@ public sealed class FeedbackCoordinatorTests
         try
         {
             using var feedbackStore = new JsonFeedbackStore(Path.Combine(directory, "feedback.json"));
-            using var userDataStore = new SqliteUserDataStore(Path.Combine(directory, "user-data.db"));
+            using var keyProvider = new TestUserDataEncryptionKeyProvider();
+            using var userDataStore = new SqliteUserDataStore(
+                Path.Combine(directory, "user-data.db"),
+                keyProvider);
             await userDataStore.InitializeAsync();
             var coordinator = new FeedbackCoordinator(
                 feedbackStore,
@@ -49,7 +52,10 @@ public sealed class FeedbackCoordinatorTests
         try
         {
             using var innerStore = new JsonFeedbackStore(Path.Combine(directory, "feedback.json"));
-            using var userDataStore = new SqliteUserDataStore(Path.Combine(directory, "user-data.db"));
+            using var keyProvider = new TestUserDataEncryptionKeyProvider();
+            using var userDataStore = new SqliteUserDataStore(
+                Path.Combine(directory, "user-data.db"),
+                keyProvider);
             await userDataStore.InitializeAsync();
             var store = new FailOnSaveFeedbackStore(innerStore, failOnSave: 2);
             var coordinator = new FeedbackCoordinator(store, userDataStore, TimeProvider.System);

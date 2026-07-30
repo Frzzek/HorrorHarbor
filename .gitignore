@@ -4,6 +4,8 @@
 artifacts/
 .vs/
 .idea/
+**/__pycache__/
+*.py[cod]
 *.user
 *.suo
 *.tmp
@@ -24,4 +26,13 @@ personal-hybrid-artwork/
 *.db-wal
 user-data/
 **/user-data/
-.vscode/
+# Share only generic project settings; keep all other editor state private.
+.vscode/*
+!.vscode/settings.json
+
+# Personal career documents - never commit
+**/*[Rr]esume*
+**/*[Cc][Vv]*
+**/*.doc
+**/*.docx
+**/*.pdf

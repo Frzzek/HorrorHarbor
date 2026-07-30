@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\src\HorrorHarbor.App\HorrorHarbor.App.csproj" />
     <ProjectReference Include="..\..\src\HorrorHarbor.Search\HorrorHarbor.Search.csproj" />
     <ProjectReference Include="..\..\src\HorrorHarbor.Tools.PosterAudit\HorrorHarbor.Tools.PosterAudit.csproj" />
+    <ProjectReference Include="..\HorrorHarbor.StorageProcessProbe\HorrorHarbor.StorageProcessProbe.csproj" ReferenceOutputAssembly="false" />
     <PackageReference Include="MSTest" />
     <PackageReference Include="coverlet.msbuild" PrivateAssets="all" />
   </ItemGroup>

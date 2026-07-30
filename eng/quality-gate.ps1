@@ -29,12 +29,28 @@ try {
     & $pythonPath @pythonArguments tools/quality/static_validate.py --root . --report artifacts/validation/static-validation.json
     if ($LASTEXITCODE -ne 0) { throw 'Static validation failed.' }
 
+    & $pythonPath @pythonArguments tools/quality/audit_sqlite_provider.py --self-test
+    if ($LASTEXITCODE -ne 0) { throw 'Encrypted SQLite provider policy self-test failed.' }
+    & $pythonPath @pythonArguments tools/quality/audit_sqlite_provider.py `
+        --root . `
+        --report artifacts/validation/sqlite-provider-policy.json
+    if ($LASTEXITCODE -ne 0) { throw 'Encrypted SQLite provider policy audit failed.' }
+    & $pythonPath @pythonArguments tools/quality/verify_encrypted_database.py --self-test
+    if ($LASTEXITCODE -ne 0) { throw 'Keyless database opacity inspector self-test failed.' }
+
     & "$PSScriptRoot/security-scan.ps1" -Configuration $Configuration
     dotnet format HorrorHarbor.sln --verify-no-changes --no-restore
     if ($LASTEXITCODE -ne 0) { throw 'Formatting verification failed.' }
     dotnet build HorrorHarbor.sln -c $Configuration --no-restore
     if ($LASTEXITCODE -ne 0) { throw 'Solution build failed.' }
     & "$PSScriptRoot/test.ps1" -Configuration $Configuration
+    & $pythonPath @pythonArguments tools/quality/verify_encrypted_storage_test_evidence.py --self-test
+    if ($LASTEXITCODE -ne 0) { throw 'Compiled encrypted-storage evidence self-test failed.' }
+    & $pythonPath @pythonArguments tools/quality/verify_encrypted_storage_test_evidence.py `
+        --trx artifacts/test-results/quality-gate-integration/integration.trx `
+        --report artifacts/validation/encrypted-storage-test-evidence.json
+    if ($LASTEXITCODE -ne 0) { throw 'Compiled encrypted-storage test evidence failed.' }
+    & "$PSScriptRoot/package-portable.ps1" -SelfTest
     $posterAuditOutput = Join-Path `
         'artifacts/poster-audit' `
         ("quality-gate-{0}" -f [Guid]::NewGuid().ToString('N'))

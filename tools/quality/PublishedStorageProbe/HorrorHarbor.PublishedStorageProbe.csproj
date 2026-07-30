@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <UseWPF>true</UseWPF>
+    <UseAppHost>false</UseAppHost>
+    <AssemblyName>HorrorHarbor.PublishedStorageProbe</AssemblyName>
+    <RootNamespace>HorrorHarbor.PublishedStorageProbe</RootNamespace>
+    <Description>Isolated exact-payload encrypted-storage verification probe.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="HorrorHarbor" HintPath="$(PublishedHorrorHarborDirectory)\HorrorHarbor.dll" Private="true" />
+    <Reference Include="HorrorHarbor.Core" HintPath="$(PublishedHorrorHarborDirectory)\HorrorHarbor.Core.dll" Private="true" />
+    <Reference Include="HorrorHarbor.Data" HintPath="$(PublishedHorrorHarborDirectory)\HorrorHarbor.Data.dll" Private="true" />
+    <Reference Include="Microsoft.Data.Sqlite" HintPath="$(PublishedHorrorHarborDirectory)\Microsoft.Data.Sqlite.dll" Private="true" />
+    <Reference Include="SQLitePCLRaw.batteries_v2" HintPath="$(PublishedHorrorHarborDirectory)\SQLitePCLRaw.batteries_v2.dll" Private="true" />
+    <Reference Include="SQLitePCLRaw.core" HintPath="$(PublishedHorrorHarborDirectory)\SQLitePCLRaw.core.dll" Private="true" />
+  </ItemGroup>
+</Project>

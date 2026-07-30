@@ -29,6 +29,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HorrorHarbor.Tools.PosterAu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HorrorHarbor.Search", "src\HorrorHarbor.Search\HorrorHarbor.Search.csproj", "{86DE9365-6A96-4214-A452-AF852EB0F71B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HorrorHarbor.StorageProcessProbe", "tests\HorrorHarbor.StorageProcessProbe\HorrorHarbor.StorageProcessProbe.csproj", "{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -183,6 +187,18 @@ Global
 		{86DE9365-6A96-4214-A452-AF852EB0F71B}.Release|x64.Build.0 = Release|Any CPU
 		{86DE9365-6A96-4214-A452-AF852EB0F71B}.Release|x86.ActiveCfg = Release|Any CPU
 		{86DE9365-6A96-4214-A452-AF852EB0F71B}.Release|x86.Build.0 = Release|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Debug|x64.Build.0 = Debug|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Debug|x86.Build.0 = Debug|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Release|x64.ActiveCfg = Release|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Release|x64.Build.0 = Release|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Release|x86.ActiveCfg = Release|Any CPU
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -190,5 +206,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{64054265-65C0-49E4-8216-2F4746802132} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{86DE9365-6A96-4214-A452-AF852EB0F71B} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{DF0D6AF7-8600-4ACC-A03C-6F1FC555C76D} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

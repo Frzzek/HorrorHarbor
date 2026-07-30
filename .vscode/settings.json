@@ -1,0 +1,15 @@
+{
+  "dotnet.defaultSolution": "HorrorHarbor.sln",
+  "files.watcherExclude": {
+    "**/bin/**": true,
+    "**/obj/**": true,
+    "**/artifacts/**": true,
+    "**/TestResults/**": true
+  },
+  "search.exclude": {
+    "**/bin/**": true,
+    "**/obj/**": true,
+    "**/artifacts/**": true,
+    "**/TestResults/**": true
+  }
+}

@@ -38,6 +38,9 @@ public partial class App : Application
                     services.AddSingleton<ICandidateCatalog>(
                         new JsonCandidateCatalog(CatalogPathResolver.Resolve()));
                     services.AddSingleton<IFeedbackStore, JsonFeedbackStore>();
+                    services.AddSingleton<
+                        IUserDataEncryptionKeyProvider,
+                        DpapiUserDataEncryptionKeyProvider>();
                     services.AddSingleton<IUserDataStore, SqliteUserDataStore>();
                     services.AddSingleton(TimeProvider.System);
                     services.AddSingleton<IFeedbackCoordinator, FeedbackCoordinator>();

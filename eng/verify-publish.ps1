@@ -27,13 +27,106 @@ if ($files.Count -eq 0) { throw 'Publish directory is empty.' }
 
 $requiredRelativePaths = @(
     'HorrorHarbor.exe',
-    'data\catalog\recommendation_catalog.json'
+    'appsettings.json',
+    'data\catalog\recommendation_catalog.json',
+    'SQLite3MC.PCLRaw.provider.dll',
+    'sqlite3mc.dll'
 )
 foreach ($relativePath in $requiredRelativePaths) {
     $requiredPath = Join-Path $resolvedPublish $relativePath
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
         throw "Required publish file is missing: $relativePath"
     }
+}
+
+$approvedNativeProviderPath = Join-Path $resolvedPublish 'sqlite3mc.dll'
+$approvedManagedProviderPath = Join-Path $resolvedPublish 'SQLite3MC.PCLRaw.provider.dll'
+$nativeProviderVersion = [Diagnostics.FileVersionInfo]::GetVersionInfo(
+    $approvedNativeProviderPath
+)
+if ($nativeProviderVersion.FileVersion -ne '2.3.6' -or
+    $nativeProviderVersion.ProductVersion -ne '2.3.6' -or
+    $nativeProviderVersion.OriginalFilename -ne 'sqlite3mc.dll' -or
+    $nativeProviderVersion.ProductName -ne 'SQLite3 Multiple Ciphers') {
+    throw 'The published sqlite3mc.dll identity does not match reviewed SQLite3MC 2.3.6.'
+}
+
+$managedProviderVersion = [Reflection.AssemblyName]::GetAssemblyName(
+    $approvedManagedProviderPath
+).Version.ToString()
+if ($managedProviderVersion -ne '2.3.6.0') {
+    throw "Unexpected SQLite3MC managed provider version: $managedProviderVersion"
+}
+
+$sqliteNativeCandidates = @(
+    $files | Where-Object {
+        $_.Name -match '(?i)^(?:(?:e_|lib)?sqlite3(?:mc)?|winsqlite3|(?:lib)?sqlcipher|SQLite\.Interop)\.dll$'
+    }
+)
+if ($sqliteNativeCandidates.Count -ne 1 -or
+    -not $sqliteNativeCandidates[0].FullName.Equals(
+        $approvedNativeProviderPath,
+        [StringComparison]::OrdinalIgnoreCase)) {
+    $observed = @($sqliteNativeCandidates | ForEach-Object {
+        $_.FullName.Substring($resolvedPublish.Length + 1).Replace('\', '/')
+    })
+    throw "Publish must contain exactly one approved native SQLite implementation. Observed: $($observed -join ', ')"
+}
+
+$sqliteManagedProviderCandidates = @(
+    $files | Where-Object {
+        $_.Name -match '(?i)^(?:SQLite3MC\.PCLRaw|SQLitePCLRaw)\.provider(?:\..+)?\.dll$'
+    }
+)
+if ($sqliteManagedProviderCandidates.Count -ne 1 -or
+    -not $sqliteManagedProviderCandidates[0].FullName.Equals(
+        $approvedManagedProviderPath,
+        [StringComparison]::OrdinalIgnoreCase)) {
+    $observed = @($sqliteManagedProviderCandidates | ForEach-Object {
+        $_.FullName.Substring($resolvedPublish.Length + 1).Replace('\', '/')
+    })
+    throw "Publish must contain exactly one approved managed SQLite provider. Observed: $($observed -join ', ')"
+}
+
+$dependencyManifestPath = Join-Path $resolvedPublish 'HorrorHarbor.deps.json'
+try {
+    $dependencyManifest = Get-Content -LiteralPath $dependencyManifestPath -Raw |
+        ConvertFrom-Json
+}
+catch {
+    throw "Published dependency manifest is invalid: $($_.Exception.Message)"
+}
+$publishedLibraries = @($dependencyManifest.libraries.PSObject.Properties.Name)
+$requiredSqliteLibraries = @(
+    'Microsoft.Data.Sqlite.Core/10.0.10',
+    'SQLite3MC.PCLRaw.bundle/2.3.6',
+    'SQLite3MC.PCLRaw.lib/2.3.6',
+    'SQLite3MC.PCLRaw.provider/2.3.6',
+    'SQLitePCLRaw.core/3.0.2'
+)
+foreach ($library in $requiredSqliteLibraries) {
+    if ($library -notin $publishedLibraries) {
+        throw "Required reviewed SQLite dependency is missing from the publish manifest: $library"
+    }
+}
+
+$forbiddenSqliteLibraryPatterns = @(
+    '^Microsoft\.Data\.Sqlite/',
+    '^SQLitePCLRaw\.bundle_',
+    '^SQLitePCLRaw\.lib\.',
+    '^SQLitePCLRaw\.provider\.',
+    '^System\.Data\.SQLite'
+)
+$forbiddenSqliteLibraries = @(
+    $publishedLibraries | Where-Object {
+        $libraryName = $_
+        @($forbiddenSqliteLibraryPatterns | Where-Object {
+            $libraryName -match $_
+        }).Count -gt 0
+    }
+)
+if ($forbiddenSqliteLibraries.Count -gt 0) {
+    throw "Forbidden ordinary or duplicate SQLite dependencies detected: $($forbiddenSqliteLibraries -join ', ')"
 }
 
 $forbiddenExtensions = @(
@@ -43,6 +136,9 @@ $forbiddenExtensions = @(
 $forbiddenPathSegments = @(
     'credential', 'official-posters', 'poster-audit', 'recommendation_feedback',
     'testresults', 'user-data', 'watch-history'
+)
+$forbiddenFileNames = @(
+    'appsettings.Development.json', 'appsettings.Testing.json'
 )
 $allowedDataPath = 'data/catalog/recommendation_catalog.json'
 $inventory = [Collections.Generic.List[object]]::new()
@@ -54,6 +150,9 @@ foreach ($file in $files) {
 
     if ($extension -in $forbiddenExtensions) {
         throw "Forbidden publish file extension detected: $portablePath"
+    }
+    if ($file.Name -in $forbiddenFileNames) {
+        throw "Development or testing configuration detected: $portablePath"
     }
     foreach ($segment in $forbiddenPathSegments) {
         if ($portablePath.IndexOf($segment, [StringComparison]::OrdinalIgnoreCase) -ge 0) {

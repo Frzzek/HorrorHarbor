@@ -2,6 +2,7 @@
 param(
     [ValidateSet('Debug', 'Release')]
     [string]$Configuration = 'Release',
+    [ValidateSet('win-x64')]
     [string]$Runtime = 'win-x64'
 )
 
@@ -15,8 +16,31 @@ try {
     }
 
     & "$PSScriptRoot/quality-gate.ps1" -Configuration $Configuration
-    $publish = Join-Path $root "artifacts/publish/$Runtime"
-    if (Test-Path $publish) { Remove-Item $publish -Recurse -Force }
+    $publishRoot = [IO.Path]::GetFullPath(
+        (Join-Path $root 'artifacts\publish')
+    ).TrimEnd('\')
+    $publish = [IO.Path]::GetFullPath((Join-Path $publishRoot $Runtime)).TrimEnd('\')
+    if (-not $publish.StartsWith(
+            "$publishRoot\",
+            [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'The publish output must remain below the repository publish directory.'
+    }
+    foreach ($path in @(
+        $root,
+        (Join-Path $root 'artifacts'),
+        $publishRoot,
+        $publish
+    )) {
+        if (Test-Path -LiteralPath $path) {
+            $item = Get-Item -LiteralPath $path -Force
+            if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+                throw "Publish cleanup refuses reparse-point traversal: $path"
+            }
+        }
+    }
+    if (Test-Path -LiteralPath $publish) {
+        Remove-Item -LiteralPath $publish -Recurse -Force
+    }
     dotnet clean HorrorHarbor.sln -c $Configuration
     if ($LASTEXITCODE -ne 0) { throw 'Pre-publish clean failed.' }
     dotnet restore src/HorrorHarbor.App/HorrorHarbor.App.csproj `
@@ -41,6 +65,9 @@ try {
     & "$PSScriptRoot/verify-publish.ps1" `
         -PublishDirectory $publish `
         -InventoryPath "artifacts/validation/publish-inventory-$Runtime.json"
+    & "$root/tools/quality/verify-published-storage.ps1" `
+        -PublishDirectory $publish `
+        -ReportPath "artifacts/validation/published-storage-runtime-$Runtime.json"
 
     Write-Host "Build complete: $publish" -ForegroundColor Green
 }
