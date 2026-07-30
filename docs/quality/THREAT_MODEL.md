@@ -29,8 +29,9 @@ This model distinguishes:
 |---|---|---|---|
 | Plex token | Secret | Windows Credential Manager; DPAPI fallback | Never place in a URL, log, cache, report, or source file |
 | TMDB read-access token | Secret | Windows Credential Manager | Provider-scoped authorization header only; never forward to image hosts |
-| Plex watch history | Private | Local SQLite user database | Never transmit to metadata providers; bound retention and import volume |
-| Feedback and taste profile | Private | Local user state and memory | Never transmit to providers; update transactionally |
+| Plex watch history | Private | Encrypted local SQLite user database | Never transmit to metadata providers; bound retention and import volume |
+| Database encryption key | Secret | Current-user DPAPI-protected key file and process memory | Keep separate from database/configuration/SQL; never log; fail closed if unavailable |
+| Feedback and taste profile | Private | Encrypted database, separate unencrypted JSON projection, and memory | Never transmit to providers; update transactionally; disclose split protection |
 | Search query | Potentially private | Memory by default | Do not persist or transmit unless an explicit online-search action discloses the provider |
 | Curated catalog | Integrity-sensitive | Published JSON | Strict schema, size, range, identity, and duplicate validation |
 | Online metadata | Untrusted | HTTPS response and bounded local cache | Validate, attribute, timestamp, and keep separate provenance |
@@ -132,7 +133,8 @@ NuGet packages, GitHub Actions, scripts, generated files, and build machines are
 | PST-01 | Feedback current state and event history diverge after partial writes | Incorrect personalization and undo | Consolidate feedback state and event history behind one transactional persistence service; migrate existing JSON safely | Fault-injection integration tests |
 | PST-02 | Corrupt or unsupported user-database schema is trusted | Crash or silent data loss | Enforce schema version compatibility, transactional migrations, integrity check, validated reads, and recoverable backup/quarantine policy | Migration and corruption tests |
 | PST-03 | Watch-history import or retention grows without bound | Disk or memory denial of service | Per-sync cap, explicit truncation status, retention policy, indexes, and paged reads | Large-history integration test |
-| PST-04 | Same-user process reads plaintext watch history | Privacy breach | Store only needed fields, document local-account boundary, provide deletion/retention controls, and consider optional DPAPI-protected export or database encryption separately | Privacy review; residual risk documented |
+| PST-04 | Offline copy exposes database pages or journal content | Privacy breach | Full-page encrypted SQLite provider, explicit cipher and zero plaintext header, random DPAPI-protected key, non-pooled binary-keyed connections, and keyless marker inspection | Provider policy, keyless/wrong-key, sidecar, and canary tests |
+| PST-08 | Missing/wrong key, corrupt schema, or interrupted plaintext migration causes silent data loss | Personal-data loss | Fail closed, validate exact owned schema, build encrypted destination before copy, verify independently, replace atomically, never generate a replacement key for existing encrypted data | Migration, wrong/missing-key, unknown-schema, and fault-injection tests |
 | PST-05 | Cache path split or unsafe migration loses or mixes state | Integrity and disk-sprawl failure | One versioned application-data root, fixed application-owned subpaths, safe one-time migration, and no user-controlled production cache root | Path and migration tests |
 | PST-06 | Partial or tampered cache entry is consumed | Poisoned UI or metadata | Atomic writes, schema/provenance validation, size limits, integrity hash, stale policy, and rebuild-on-failure | Corrupt-cache tests |
 | PST-07 | Temporary files accumulate after cancellation or crash | Disk exhaustion | Unique temporary names, cleanup in finally blocks, and startup scavenging restricted to application-owned patterns | Cancellation and scavenging tests |
@@ -166,6 +168,12 @@ NuGet packages, GitHub Actions, scripts, generated files, and build machines are
 - TMDB uses fixed HTTPS hosts, bearer authorization only for API requests, no authorization on image requests, redirect rejection, byte/media/image validation, atomic writes, provenance, and integrity hashes.
 - TMDB failure falls back to local generated artwork and preserves caller cancellation.
 - Credential Manager stores Plex and TMDB credentials; the Plex fallback uses current-user DPAPI.
+- The user database and journal pages use SQLite3 Multiple Ciphers with explicit
+  ChaCha20-Poly1305 selection, no plaintext header, a random 256-bit key, and
+  current-user DPAPI key protection.
+- Encrypted database connections are private and non-pooled, use native binary
+  keying before schema access, and fail closed for missing/wrong keys and unknown
+  plaintext schemas.
 - Mutable credential buffers are zeroed where practical.
 - CI runs audited restore, formatting, analyzers, unit/integration/security tests, self-test, performance checks, publish, and evidence upload.
 - CodeQL and Dependabot are configured.
@@ -179,7 +187,8 @@ NuGet packages, GitHub Actions, scripts, generated files, and build machines are
 5. Dedicated HTTP policy per provider rather than one shared client.
 6. Explicit online-search disclosure; no transmission of watch history or taste profiles.
 7. Transactional feedback persistence and tested migration from the existing JSON projection.
-8. Schema enforcement, retention bounds, and safer validation for mutable user data.
+8. Schema enforcement, encrypted-storage provider policy, fail-closed plaintext
+   migration, retention bounds, and safer validation for mutable user data.
 9. Comprehensive secret and private-data redaction with bounded log rotation.
 10. Unified versioned local-storage root and safe cache migration.
 11. Mandatory parity between local and CI quality gates.
@@ -188,7 +197,13 @@ NuGet packages, GitHub Actions, scripts, generated files, and build machines are
 
 ## Residual risks and explicit non-goals
 
-- A process running as the same Windows user can read or modify plaintext local watch-history and feedback files. Protecting against a compromised user account or administrator is outside this release boundary.
+- The encrypted database protects copied pages and journal content, not data
+  already accessible to malware running as the same Windows user, an
+  administrator, a compromised operating system, or process-memory inspection.
+- The separate feedback JSON projection, caches, and diagnostics remain ordinary
+  per-user files. Database encryption does not cover them.
+- Loss of the current-user DPAPI key file or Windows profile makes the encrypted
+  database unrecoverable; there is no recovery key or back door.
 - HTTPS provider traffic reveals destination and timing to the network and sends explicitly submitted online-search terms to the disclosed provider.
 - Provider truth, availability data, and horror classification can be incomplete or stale. Provenance and confidence reduce but cannot eliminate this risk.
 - Insecure HTTP Plex support retains DNS-rebinding risk until connect-time address enforcement is implemented; HTTPS remains the recommended path.
@@ -208,4 +223,7 @@ NuGet packages, GitHub Actions, scripts, generated files, and build machines are
 
 ## Review triggers
 
-Re-review this model before adding a new provider, hosted search service, telemetry, cloud sync, automatic update channel, installer elevation, database encryption, or transmission of any local history/profile data.
+Re-review this model before adding a new provider, hosted search service,
+telemetry, cloud sync, automatic update channel, installer elevation, a new
+database cipher/provider or key-recovery mechanism, or transmission of any local
+history/profile data.

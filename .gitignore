@@ -28,7 +28,7 @@ user-data/
 **/user-data/
 .vscode/
 
-# Personal career documents — never commit
+# Personal career documents - never commit
 **/*[Rr]esume*
 **/*[Cc][Vv]*
 **/*.doc

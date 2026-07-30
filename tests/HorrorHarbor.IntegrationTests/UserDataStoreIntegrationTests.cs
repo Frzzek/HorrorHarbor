@@ -15,7 +15,8 @@ public sealed class UserDataStoreIntegrationTests
         string databasePath = Path.Combine(directory, "user-data.db");
         try
         {
-            using var store = new SqliteUserDataStore(databasePath);
+            using var keyProvider = new TestUserDataEncryptionKeyProvider();
+            using var store = new SqliteUserDataStore(databasePath, keyProvider);
             await store.InitializeAsync();
             await store.SavePlexServerAsync(
                 "primary",
@@ -54,7 +55,10 @@ public sealed class UserDataStoreIntegrationTests
         string directory = Path.Combine(Path.GetTempPath(), "HorrorHarbor.Tests", Guid.NewGuid().ToString("N"));
         try
         {
-            using var store = new SqliteUserDataStore(Path.Combine(directory, "user-data.db"));
+            using var keyProvider = new TestUserDataEncryptionKeyProvider();
+            using var store = new SqliteUserDataStore(
+                Path.Combine(directory, "user-data.db"),
+                keyProvider);
             await store.InitializeAsync();
             await store.RecordFeedbackAsync("candidate-1", RecommendationFeedback.Interested, DateTime.UtcNow);
 
@@ -86,7 +90,10 @@ public sealed class UserDataStoreIntegrationTests
         string directory = Path.Combine(Path.GetTempPath(), "HorrorHarbor.Tests", Guid.NewGuid().ToString("N"));
         try
         {
-            using var store = new SqliteUserDataStore(Path.Combine(directory, "user-data.db"));
+            using var keyProvider = new TestUserDataEncryptionKeyProvider();
+            using var store = new SqliteUserDataStore(
+                Path.Combine(directory, "user-data.db"),
+                keyProvider);
             await store.InitializeAsync();
 
             Assert.IsNull(await store.LoadSettingAsync("discovery.mood.v1"));

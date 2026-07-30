@@ -14,6 +14,8 @@ TMDB application.
   status filters, aliases, deterministic ranking, and bounded typo tolerance.
 - Explainable recommendations with mood controls and optional local Plex watch
   history.
+- Full-page encrypted per-user SQLite storage with a random key protected for
+  the current Windows user.
 - Official TMDB artwork when a user explicitly configures personal access and
   identity matching is unambiguous.
 - Deterministic locally generated fallback artwork for offline, unavailable, or
@@ -39,8 +41,8 @@ See the [privacy notice](PRIVACY.md), [security policy](SECURITY.md),
 ## Plex notice
 
 HorrorHarbor is an independent community project. It is not reviewed, approved,
-or endorsed by Plex. Plex and Plex Media Server are trademarks of Plex and used
-under a license.
+or endorsed by Plex. Plex and Plex Media Server are trademarks of Plex, Inc. or
+its affiliates. No Plex logo is bundled with HorrorHarbor.
 
 - [Plex developer documentation](https://developer.plex.tv/)
 - [Plex trademark guidelines](https://www.plex.tv/about/privacy-legal/plex-trademarks-and-guidelines/)

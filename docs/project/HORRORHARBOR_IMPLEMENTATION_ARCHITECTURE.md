@@ -67,15 +67,22 @@ network connection.
 | Data | Location | Distribution rule |
 |---|---|---|
 | Curated catalog | Installed `data/catalog/recommendation_catalog.json` | Included |
-| User database | `%LOCALAPPDATA%\HorrorHarbor\user-data.db` | Never included |
-| Feedback projection | `%LOCALAPPDATA%\HorrorHarbor\recommendation_feedback.json` | Never included |
+| User database | `%LOCALAPPDATA%\HorrorHarbor\user-data.db` | Encrypted; never included |
+| Database key | `%LOCALAPPDATA%\HorrorHarbor\credentials\user-data-key-v1.dpapi` | Current-user DPAPI protected; never included |
+| Feedback projection | `%LOCALAPPDATA%\HorrorHarbor\recommendation_feedback.json` | Unencrypted per-user JSON; never included |
 | Diagnostics | `%LOCALAPPDATA%\HorrorHarbor\logs` | Never included |
 | Generated posters | `%LOCALAPPDATA%\NocturneHarbor\posters-v1` | Never included as user cache |
 | Official posters | `%LOCALAPPDATA%\NocturneHarbor\official-posters-v1` | Never included |
 | Provider credentials | Windows Credential Manager or documented current-user fallback | Never included |
 
-The SQLite user database is not encrypted. Windows profile permissions are the
-primary local boundary; another process running as the same user can read it.
+The user database and SQLite journal pages use SQLite3 Multiple Ciphers with
+explicit ChaCha20-Poly1305 selection, no plaintext header, and a random 256-bit
+key protected separately with current-user DPAPI. Valid version-1 plaintext
+databases migrate through a verified encrypted replacement; missing/wrong keys
+and unknown schemas fail closed. This protects copied database files but not a
+compromised Windows user/session, administrator, operating system, or process
+memory. The feedback JSON, caches, and diagnostics remain separate ordinary
+per-user files. Loss of the protected key makes the database unrecoverable.
 
 ## Release boundary
 

@@ -14,6 +14,7 @@
   <ItemGroup>
     <Resource Include="Assets\NocturneHarbor.ico" />
     <None Update="Assets\NocturneHarbor-preview.png" />
+    <InternalsVisibleTo Include="HorrorHarbor.IntegrationTests" />
     <ProjectReference Include="..\HorrorHarbor.Core\HorrorHarbor.Core.csproj" />
     <ProjectReference Include="..\HorrorHarbor.Data\HorrorHarbor.Data.csproj" />
     <ProjectReference Include="..\HorrorHarbor.Recommendations\HorrorHarbor.Recommendations.csproj" />
@@ -26,8 +27,11 @@
           Link="data\catalog\recommendation_catalog.json"
           CopyToOutputDirectory="PreserveNewest"
           CopyToPublishDirectory="PreserveNewest" />
-    <None Update="appsettings*.json"
+    <None Update="appsettings.json"
           CopyToOutputDirectory="PreserveNewest"
           CopyToPublishDirectory="PreserveNewest" />
+    <None Update="appsettings.Development.json;appsettings.Testing.json"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="Never" />
   </ItemGroup>
 </Project>
