@@ -1,14 +1,13 @@
 # Release Status
 
-This status distinguishes the public `main` revision from the encrypted-storage
-candidate validated locally on 2026-07-29 and submitted through protected pull
-request #5. The prior exact pull-request head passed GitHub quality and CodeQL
-checks, but the candidate has not been merged. Every updated exact head requires
-fresh checks. Nothing here approves an unsigned binary or installer.
+This status records the encrypted-storage source release merged through
+protected pull request #5 on 2026-07-29. The exact pull-request head and resulting
+public `main` tree passed the required quality and CodeQL checks. Nothing here
+approves an unsigned binary or installer.
 
 | Gate | Status |
 | --- | --- |
-| Public `main` revision | UNCHANGED — encrypted-storage candidate is in protected pull request #5, not merged or represented as public `main` |
+| Public `main` revision | PASS — protected pull request #5 merged as `827e767`; its tree matches the exact validated candidate tree |
 | Local candidate source-tree privacy | PASS — no bundled watch-history database, credentials, provider cache, logs, or private diagnostics |
 | Static validation | PASS — 60/60 checks |
 | Formatting | PASS — `dotnet format --verify-no-changes` |
@@ -26,17 +25,15 @@ fresh checks. Nothing here approves an unsigned binary or installer.
 | Windows x64 publish | PASS — self-contained ReadyToRun payload; exact 440-file inventory verified |
 | Published encrypted-storage runtime | PASS — exact source/candidate/runtime payload, encrypted initialization, plaintext migration, keyless rejection, opacity, and provider identity verified using synthetic fixtures only |
 | Independent blocker review | PASS — no remaining BLOCKER or HIGH finding |
-| GitHub quality workflow for this candidate | REQUIRED — prior pull-request head passed; the updated exact head must pass before merge |
-| CodeQL for this candidate | REQUIRED — prior pull-request head passed; the updated exact head must pass before merge |
-| GitHub secret scanning and public-ref re-audit | PENDING — required after candidate publication and merge |
+| GitHub quality workflow | PASS — exact pull-request head and resulting public `main` commit passed |
+| CodeQL | PASS — exact pull-request head and resulting public `main` commit passed |
+| GitHub secret scanning and public-ref re-audit | PASS — zero open secret, code-scanning, or Dependabot alerts; no unexpected public or pull refs |
 | Live TMDB provider acceptance | DEFERRED — requires a user-supplied authorized credential |
 | Signed binary and installer promotion | NOT APPROVED |
 
-**Promotion status:** local candidate verification is accepted as a prerequisite
-to pull-request review. Public source promotion remains blocked until the exact
-candidate passes required GitHub `quality-gate` and CodeQL `analyze` checks and
-is merged through protected `main`. Executables and installers remain unsigned
-development artifacts and are not publisher-verified public releases.
+**Promotion status:** the reviewed source is published on protected `main`.
+Executables and installers remain unsigned development artifacts and are not
+publisher-verified public releases.
 
 Generated artwork is accepted as a clearly labeled fallback and is not
 represented as official or bespoke studio key art.
