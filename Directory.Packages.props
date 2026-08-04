@@ -6,7 +6,7 @@
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="10.0.10" />
     <PackageVersion Include="SkiaSharp" Version="4.150.1" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="4.150.1" />
-    <PackageVersion Include="MSTest" Version="4.3.2" />
+    <PackageVersion Include="MSTest" Version="4.3.3" />
     <PackageVersion Include="coverlet.msbuild" Version="10.0.1" />
   </ItemGroup>
 </Project>
