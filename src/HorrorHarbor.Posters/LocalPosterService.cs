@@ -26,14 +26,38 @@ public sealed class LocalPosterService : IPosterService, IDisposable
 
     public async Task<PosterAsset> GetPosterAsync(
         PosterDescriptor descriptor,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        await GetPosterCoreAsync(
+            descriptor,
+            PosterGenerationOptions.Automatic,
+            PosterSourceKind.GeneratedFallback,
+            cancellationToken).ConfigureAwait(false);
+
+    public async Task<PosterAsset> GetCustomPosterAsync(
+        PosterDescriptor descriptor,
+        PosterGenerationOptions options,
+        CancellationToken cancellationToken = default) =>
+        await GetPosterCoreAsync(
+            descriptor,
+            options,
+            PosterSourceKind.GeneratedCustom,
+            cancellationToken).ConfigureAwait(false);
+
+    private async Task<PosterAsset> GetPosterCoreAsync(
+        PosterDescriptor descriptor,
+        PosterGenerationOptions options,
+        PosterSourceKind sourceKind,
+        CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ValidateDescriptor(descriptor);
+        ArgumentNullException.ThrowIfNull(options);
+        PosterGenerationOptions normalized = options.Normalize();
         Directory.CreateDirectory(_options.RootDirectory);
 
         string key = ProceduralPosterRenderer.GetCacheKey(
             descriptor,
+            normalized,
             _options.PixelWidth,
             _options.PixelHeight);
         string path = Path.Combine(_options.RootDirectory, key + ".png");
@@ -43,7 +67,7 @@ public sealed class LocalPosterService : IPosterService, IDisposable
             _options.PixelHeight,
             _options.MaximumFileBytes))
         {
-            return CreateAsset(path, wasGenerated: false, descriptor);
+            return CreateAsset(path, wasGenerated: false, descriptor, sourceKind);
         }
 
         SemaphoreSlim gate = _keyLocks.GetOrAdd(key, static _ => new SemaphoreSlim(1, 1));
@@ -56,11 +80,15 @@ public sealed class LocalPosterService : IPosterService, IDisposable
                 _options.PixelHeight,
                 _options.MaximumFileBytes))
             {
-                return CreateAsset(path, wasGenerated: false, descriptor);
+                return CreateAsset(path, wasGenerated: false, descriptor, sourceKind);
             }
 
             byte[] encoded = await Task.Run(
-                () => ProceduralPosterRenderer.Render(descriptor, _options.PixelWidth, _options.PixelHeight),
+                () => ProceduralPosterRenderer.Render(
+                    descriptor,
+                    normalized,
+                    _options.PixelWidth,
+                    _options.PixelHeight),
                 cancellationToken).ConfigureAwait(false);
             if (encoded.LongLength > _options.MaximumFileBytes || !PngImageValidator.IsValid(
                 encoded,
@@ -82,7 +110,7 @@ public sealed class LocalPosterService : IPosterService, IDisposable
                 File.Delete(temporaryPath);
             }
 
-            return CreateAsset(path, wasGenerated: true, descriptor);
+            return CreateAsset(path, wasGenerated: true, descriptor, sourceKind);
         }
         finally
         {
@@ -106,19 +134,27 @@ public sealed class LocalPosterService : IPosterService, IDisposable
         _keyLocks.Clear();
     }
 
-    private PosterAsset CreateAsset(string path, bool wasGenerated, PosterDescriptor descriptor)
+    private PosterAsset CreateAsset(
+        string path,
+        bool wasGenerated,
+        PosterDescriptor descriptor,
+        PosterSourceKind sourceKind)
     {
         string sha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
         var provenance = new PosterProvenance(
-            PosterSourceKind.GeneratedFallback,
+            sourceKind,
             "Nocturne Harbor renderer",
             null,
             descriptor.CandidateId,
-            "deterministic-local-fallback",
+            sourceKind == PosterSourceKind.GeneratedCustom
+                ? "deterministic-local-custom"
+                : "deterministic-local-fallback",
             1,
             descriptor.OriginalTitle,
             descriptor.OriginalLanguage,
-            "Original artwork generated locally by Nocturne Harbor.",
+            sourceKind == PosterSourceKind.GeneratedCustom
+                ? "Original custom artwork generated locally by Nocturne Harbor."
+                : "Original artwork generated locally by Nocturne Harbor.",
             null,
             File.GetLastWriteTimeUtc(path).ToString("O", CultureInfo.InvariantCulture),
             sha256);

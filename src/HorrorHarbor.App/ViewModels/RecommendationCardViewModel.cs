@@ -56,13 +56,7 @@ public sealed class RecommendationCardViewModel : ObservableObject
         try
         {
             PosterImageResult result = await provider.GetAsync(Candidate, cancellationToken).ConfigureAwait(true);
-            PosterImage = result.Image;
-            PosterSource = result.Provenance?.SourceKind == PosterSourceKind.TmdbOfficial
-                ? "OFFICIAL ARTWORK · TMDB"
-                : "GENERATED FALLBACK";
-            PosterStatus = result.Provenance?.SourceKind == PosterSourceKind.TmdbOfficial
-                ? $"Official TMDB poster for {Candidate.Title}; confidence {result.Provenance.MatchConfidence:P0}"
-                : $"Official artwork unavailable or not configured; generated fallback for {Candidate.Title}";
+            ApplyPoster(result);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -75,6 +69,24 @@ public sealed class RecommendationCardViewModel : ObservableObject
             PosterSource = "ARTWORK UNAVAILABLE";
             PosterStatus = $"Artwork unavailable; showing accessible title treatment for {Candidate.Title}";
         }
+    }
+
+    public void ApplyPoster(PosterImageResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        PosterImage = result.Image;
+        (PosterSource, PosterStatus) = result.Provenance?.SourceKind switch
+        {
+            PosterSourceKind.TmdbOfficial => (
+                "OFFICIAL ARTWORK · TMDB",
+                $"Official TMDB poster for {Candidate.Title}; confidence {result.Provenance.MatchConfidence:P0}"),
+            PosterSourceKind.GeneratedCustom => (
+                "CUSTOM GENERATED",
+                $"User-selected custom artwork generated locally for {Candidate.Title}"),
+            _ => (
+                "GENERATED FALLBACK",
+                $"Official artwork unavailable or not configured; generated fallback for {Candidate.Title}"),
+        };
     }
 
     public RecommendationFeedback Feedback

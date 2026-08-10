@@ -16,9 +16,12 @@ internal static class GeneratedPosterPaletteFactory
 {
     public static GeneratedPosterPalette Create(
         PosterDescriptor descriptor,
-        GeneratedPosterArtDirection direction)
+        GeneratedPosterArtDirection direction,
+        PosterGenerationOptions options)
     {
-        SKColor catalogTone = ParseTone(descriptor.PosterTone);
+        ArgumentNullException.ThrowIfNull(options);
+        PosterGenerationOptions normalized = options.Normalize();
+        SKColor catalogTone = ParseTone(normalized.AccentTone ?? descriptor.PosterTone);
         (float hue, float saturation, float lightness) = ToHsl(catalogTone);
         float familyShift = direction.Family switch
         {

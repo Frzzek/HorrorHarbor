@@ -49,21 +49,37 @@ public sealed record GeneratedPosterArtDirection(
 
 public static class GeneratedPosterArtDirector
 {
-    public static GeneratedPosterArtDirection Analyze(PosterDescriptor descriptor)
+    public static GeneratedPosterArtDirection Analyze(PosterDescriptor descriptor) =>
+        Analyze(descriptor, PosterGenerationOptions.Automatic);
+
+    public static GeneratedPosterArtDirection Analyze(
+        PosterDescriptor descriptor,
+        PosterGenerationOptions options)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(options);
+        PosterGenerationOptions normalized = options.Normalize();
 
         string metadata = BuildMetadata(descriptor);
-        PosterCompositionFamily family = SelectFamily(descriptor, metadata);
-        PosterEraStyle eraStyle = SelectEra(descriptor.ReleaseYear);
-        PosterTitleStyle titleStyle = SelectTitleStyle(family, eraStyle);
+        PosterCompositionFamily family = normalized.CompositionFamily ?? SelectFamily(descriptor, metadata);
+        PosterEraStyle eraStyle = normalized.EraStyle ?? SelectEra(descriptor.ReleaseYear);
+        PosterTitleStyle titleStyle = normalized.TitleStyle ?? SelectTitleStyle(family, eraStyle);
         byte[] identity = SHA256.HashData(Encoding.UTF8.GetBytes(BuildIdentity(descriptor)));
-        int variation = BinaryPrimitives.ReadUInt16LittleEndian(identity) % 12;
+        int variation = (BinaryPrimitives.ReadUInt16LittleEndian(identity) + normalized.VariationOffset) % 12;
         int maximumIntensity = Math.Max(
             Math.Clamp(descriptor.ScareIntensity, 0, 5),
             Math.Max(
                 Math.Clamp(descriptor.GoreIntensity, 0, 5),
                 Math.Clamp(descriptor.DreadIntensity, 0, 5)));
+
+        double automaticTexture = 0.18 + maximumIntensity * 0.045;
+        double textureStrength = normalized.TextureStyle switch
+        {
+            PosterTextureStyle.Clean => 0.07,
+            PosterTextureStyle.Atmospheric => Math.Min(0.45, automaticTexture + 0.08),
+            PosterTextureStyle.Weathered => 0.52,
+            _ => automaticTexture,
+        };
 
         return new GeneratedPosterArtDirection(
             family,
@@ -72,7 +88,7 @@ public static class GeneratedPosterArtDirector
             SelectMotif(family, metadata, variation),
             BuildEyebrow(descriptor, family),
             variation,
-            0.18 + maximumIntensity * 0.045);
+            textureStrength);
     }
 
     private static PosterCompositionFamily SelectFamily(PosterDescriptor descriptor, string metadata)

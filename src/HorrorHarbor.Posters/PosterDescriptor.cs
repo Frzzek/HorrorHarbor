@@ -19,6 +19,7 @@ public sealed record PosterDescriptor(
 public enum PosterSourceKind
 {
     GeneratedFallback,
+    GeneratedCustom,
     TmdbOfficial,
 }
 

@@ -23,6 +23,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly ISecureErrorReporter _errorReporter;
     private readonly IPosterImageProvider _posterImageProvider;
     private readonly IPosterCredentialStore _posterCredentialStore;
+    private readonly PosterCustomizationStore _posterCustomizationStore;
     private CancellationTokenSource? _posterLoadCancellation;
     private CancellationTokenSource? _plexSyncCancellation;
 
@@ -66,7 +67,8 @@ public sealed class MainWindowViewModel : ObservableObject
         IPlexHistoryProjectionService plexHistoryProjectionService,
         ISecureErrorReporter errorReporter,
         IPosterImageProvider posterImageProvider,
-        IPosterCredentialStore posterCredentialStore)
+        IPosterCredentialStore posterCredentialStore,
+        PosterCustomizationStore posterCustomizationStore)
     {
         _candidateCatalog = candidateCatalog;
         _feedbackStore = feedbackStore;
@@ -80,6 +82,7 @@ public sealed class MainWindowViewModel : ObservableObject
         _errorReporter = errorReporter;
         _posterImageProvider = posterImageProvider;
         _posterCredentialStore = posterCredentialStore;
+        _posterCustomizationStore = posterCustomizationStore;
 
         LoadCommand = new AsyncRelayCommand(LoadAsync, () => !IsBusy, HandleCommandError);
         RefreshRecommendationsCommand = new AsyncRelayCommand(
@@ -300,7 +303,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public void OpenFilmDetails(RecommendationCardViewModel card)
     {
         ArgumentNullException.ThrowIfNull(card);
-        SelectedFilmDetails = new FilmDetailsViewModel(card);
+        SelectedFilmDetails = CreateFilmDetails(card);
     }
 
     public void CloseFilmDetails() => SelectedFilmDetails = null;
@@ -698,7 +701,7 @@ public sealed class MainWindowViewModel : ObservableObject
                     StringComparison.OrdinalIgnoreCase));
             SelectedFilmDetails = selectedCard is null
                 ? null
-                : new FilmDetailsViewModel(selectedCard);
+                : CreateFilmDetails(selectedCard);
         }
 
         OnPropertyChanged(nameof(ResultsSummary));
@@ -709,6 +712,16 @@ public sealed class MainWindowViewModel : ObservableObject
             $"{queryResult.WatchedExclusionCount:N0} catalog titles were blocked by watch-history identity matching.";
 
         return Task.CompletedTask;
+    }
+
+    private FilmDetailsViewModel CreateFilmDetails(RecommendationCardViewModel card)
+    {
+        var details = new FilmDetailsViewModel(
+            card,
+            _posterImageProvider,
+            _posterCustomizationStore);
+        _ = details.PosterStudio.InitializeAsync();
+        return details;
     }
 
     private static RecommendationResult CreateSearchRecommendation(

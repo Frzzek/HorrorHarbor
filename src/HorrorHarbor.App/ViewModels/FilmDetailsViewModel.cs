@@ -1,4 +1,5 @@
 using System.Globalization;
+using HorrorHarbor.App.Infrastructure;
 using HorrorHarbor.Core.Models;
 
 namespace HorrorHarbor.App.ViewModels;
@@ -11,15 +12,20 @@ public sealed record ScoreContributionViewModel(
 
 public sealed class FilmDetailsViewModel
 {
-    public FilmDetailsViewModel(RecommendationCardViewModel card)
+    public FilmDetailsViewModel(
+        RecommendationCardViewModel card,
+        IPosterImageProvider posterImageProvider,
+        PosterCustomizationStore customizationStore)
     {
         ArgumentNullException.ThrowIfNull(card);
         Card = card;
+        PosterStudio = new PosterStudioViewModel(card, posterImageProvider, customizationStore);
         ScoreContributions = CreateContributions(card.Result.Breakdown);
         RecommendationReasons = CreateReasons(ScoreContributions, card.Explanation);
     }
 
     public RecommendationCardViewModel Card { get; }
+    public PosterStudioViewModel PosterStudio { get; }
     public RecommendationCandidate Candidate => Card.Candidate;
     public string Title => Candidate.Title;
     public string IdentityLine => $"{Candidate.YearLabel}  •  {Candidate.RuntimeLabel}";

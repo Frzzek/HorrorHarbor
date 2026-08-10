@@ -475,9 +475,26 @@
                   <Grid>
                     <Image Source="{Binding Card.PosterImage}" Stretch="UniformToFill"
                            AutomationProperties.Name="{Binding ArtworkStatus}" />
+                    <Image Source="{Binding PosterStudio.PreviewImage}" Stretch="UniformToFill"
+                           AutomationProperties.Name="Unsaved custom poster preview" />
                     <Border VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10" Padding="7,4"
                             CornerRadius="4" Background="#E0000000">
-                      <TextBlock Text="{Binding ArtworkSource}" Foreground="White"
+                      <TextBlock Text="{Binding Card.PosterSource}" Foreground="White"
+                                 FontSize="9" FontWeight="Bold" />
+                    </Border>
+                    <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10" Padding="7,4"
+                            CornerRadius="4" Background="#E0A23A4A">
+                      <Border.Style>
+                        <Style TargetType="Border">
+                          <Setter Property="Visibility" Value="Collapsed" />
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding PosterStudio.HasPreview}" Value="True">
+                              <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Border.Style>
+                      <TextBlock Text="UNSAVED PREVIEW" Foreground="White"
                                  FontSize="9" FontWeight="Bold" />
                     </Border>
                   </Grid>
@@ -565,9 +582,79 @@
                   <TextBlock Text="{Binding FullTagLine}" TextWrapping="Wrap" FontSize="13" Margin="0,10,0,0" />
                   <TextBlock Text="{Binding ScopeLine}" Style="{StaticResource SupportingText}"
                              Margin="0,9,0,0" />
-                  <TextBlock Text="{Binding ArtworkStatus}" Style="{StaticResource SupportingText}"
+                  <TextBlock Text="{Binding Card.PosterStatus}" Style="{StaticResource SupportingText}"
                              TextWrapping="Wrap" Margin="0,5,0,0" />
                 </StackPanel>
+              </Border>
+
+              <Border Style="{StaticResource SectionCard}" Margin="0,0,0,16"
+                      AutomationProperties.Name="Custom generated poster studio">
+                <Expander Header="CUSTOM POSTER STUDIO" IsExpanded="False">
+                  <StackPanel Margin="0,12,0,0" DataContext="{Binding PosterStudio}">
+                    <TextBlock Text="Create original local artwork for this film. Previewing never uploads or saves anything; Apply stores only your style choice in the encrypted local database."
+                               Style="{StaticResource SupportingText}" TextWrapping="Wrap" Margin="0,0,0,14" />
+
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="*" />
+                      </Grid.ColumnDefinitions>
+                      <StackPanel>
+                        <TextBlock Text="Composition" FontWeight="SemiBold" />
+                        <ComboBox ItemsSource="{Binding CompositionOptions}"
+                                  SelectedItem="{Binding SelectedComposition}"
+                                  DisplayMemberPath="Label" Margin="0,5,0,11"
+                                  AutomationProperties.Name="Custom poster composition" />
+                        <TextBlock Text="Typography" FontWeight="SemiBold" />
+                        <ComboBox ItemsSource="{Binding TitleStyleOptions}"
+                                  SelectedItem="{Binding SelectedTitleStyle}"
+                                  DisplayMemberPath="Label" Margin="0,5,0,11"
+                                  AutomationProperties.Name="Custom poster typography" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="2">
+                        <TextBlock Text="Era treatment" FontWeight="SemiBold" />
+                        <ComboBox ItemsSource="{Binding EraOptions}"
+                                  SelectedItem="{Binding SelectedEra}"
+                                  DisplayMemberPath="Label" Margin="0,5,0,11"
+                                  AutomationProperties.Name="Custom poster era treatment" />
+                        <TextBlock Text="Texture" FontWeight="SemiBold" />
+                        <ComboBox ItemsSource="{Binding TextureOptions}"
+                                  SelectedItem="{Binding SelectedTexture}"
+                                  DisplayMemberPath="Label" Margin="0,5,0,11"
+                                  AutomationProperties.Name="Custom poster texture" />
+                      </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,2,0,4">
+                      <TextBlock Text="Variation" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding VariationOffset, StringFormat={}{0} / 11}"
+                                 HorizontalAlignment="Right" Foreground="{DynamicResource SecondaryTextBrush}" />
+                    </Grid>
+                    <Slider Minimum="0" Maximum="11" TickFrequency="1" IsSnapToTickEnabled="True"
+                            Value="{Binding VariationOffset}" Margin="0,0,0,12"
+                            AutomationProperties.Name="Custom poster deterministic variation" />
+
+                    <TextBlock Text="Accent color (optional #RRGGBB)" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding AccentTone, UpdateSourceTrigger=PropertyChanged}"
+                             MaxLength="7" Margin="0,5,0,12"
+                             AutomationProperties.Name="Custom poster accent color"
+                             AutomationProperties.HelpText="Leave blank to use the catalog color, or enter a hexadecimal color such as #8F2338." />
+
+                    <WrapPanel>
+                      <Button Content="Preview" Command="{Binding PreviewCommand}"
+                              AutomationProperties.Name="Preview custom poster" Margin="0,0,8,8" />
+                      <Button Content="Apply custom poster" Command="{Binding ApplyCommand}"
+                              AutomationProperties.Name="Apply and save custom poster" Margin="0,0,8,8" />
+                      <Button Content="Restore official-first" Command="{Binding ResetCommand}"
+                              Style="{StaticResource QuietButton}"
+                              AutomationProperties.Name="Remove custom poster and restore official first artwork" Margin="0,0,0,8" />
+                    </WrapPanel>
+                    <TextBlock Text="{Binding Status}" Style="{StaticResource SupportingText}"
+                               TextWrapping="Wrap" Margin="0,4,0,0"
+                               AutomationProperties.LiveSetting="Polite" />
+                  </StackPanel>
+                </Expander>
               </Border>
 
               <Border Style="{StaticResource SectionCard}">

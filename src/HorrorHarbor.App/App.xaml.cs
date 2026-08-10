@@ -70,6 +70,7 @@ public partial class App : Application
                     services.AddSingleton<LocalPosterService>();
                     services.AddSingleton<TmdbPosterService>();
                     services.AddSingleton<IPosterService, HybridPosterService>();
+                    services.AddSingleton<PosterCustomizationStore>();
                     services.AddSingleton<IPosterImageProvider, PosterImageProvider>();
                     services.AddSingleton<ViewModels.MainWindowViewModel>();
                     services.AddSingleton<MainWindow>();
